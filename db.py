@@ -1,0 +1,76 @@
+import sqlite3
+
+db = sqlite3.connect("database.db")
+db.execute("PRAGMA foreign_keys = ON")
+
+# ================= USERS =================
+db.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    role TEXT CHECK(role IN ('customer','owner')) NOT NULL
+)
+""")
+
+# ================= STALLS =================
+db.execute("""
+CREATE TABLE IF NOT EXISTS stalls (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner_id INTEGER NOT NULL,
+    stall_name TEXT NOT NULL,
+    FOREIGN KEY(owner_id) REFERENCES users(id) ON DELETE CASCADE
+)
+""")
+
+# ================= PRODUCTS =================
+db.execute("""
+CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    stall_id INTEGER NOT NULL,
+    product_name TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    prep_time INTEGER NOT NULL,
+    availability INTEGER CHECK(availability >= 0) DEFAULT 1,
+    image TEXT,
+    FOREIGN KEY(stall_id) REFERENCES stalls(id) ON DELETE CASCADE
+)
+""")
+
+# ================= ORDERS (APP.PY COMPATIBLE) =================
+db.execute("""
+CREATE TABLE IF NOT EXISTS orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_id INTEGER NOT NULL,
+    stall_id INTEGER NOT NULL,
+    price INTEGER,
+    token INTEGER NOT NULL,
+    status TEXT CHECK(
+        status IN ('pending','accepted','rejected','ready','cancelled')
+    ) DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    accepted_at DATETIME,
+    remaining DATETIME,
+    prep_time INTEGER,
+    FOREIGN KEY(customer_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(stall_id) REFERENCES stalls(id) ON DELETE CASCADE,
+    UNIQUE(stall_id, token)
+)
+""")
+
+# ================= ORDER ITEMS =================
+db.execute("""
+CREATE TABLE IF NOT EXISTS order_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    quantity INTEGER CHECK(quantity > 0) DEFAULT 1,
+    FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE
+)
+""")
+
+db.commit()
+db.close()
+
+print("DataBase Created")

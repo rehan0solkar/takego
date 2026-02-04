@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Product</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+</head>
+<body>
+<header class="navbar">
+    <h1 class="logo">Editing...</h1>
+    <nav>
+        <a href="/owner" class="btn btn-outline-light me-2">Back</a>
+    </nav>
+</header>
+
+<main class="container center">
+    <h2>Edit Product</h2><br>
+    <form method="post" class="form">
+        <input type="text" placeholder="Name" name="product_name" value="{{ p[1] }}" required>
+        <input type="number" placeholder="Price" name="price" value="{{ p[2] }}" min="1" required>
+        <input type="number" placeholder="Time" name="prep_time" value="{{ p[3] }}" min="1" required>
+        <input type="number" placeholder="Quantity" name="availability" value="{{ p[4] }}" min="0" required>
+        <button type="submit" class="btn primary">Update</button>
+    </form>
+</main>
+</body>
+</html>

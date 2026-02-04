@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login | Canteen System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/auth.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h2 class="text-center mb-4">Login</h2>
+
+        <div id="errorBox" class="alert alert-danger d-none"></div>
+
+        <form id="loginForm">
+            <input class="form-control mb-3" name="username" placeholder="Username" required>
+            <input class="form-control mb-3" type="password" name="password" placeholder="Password" required>
+
+            <button class="btn btn-primary w-100">Login</button>
+        </form>
+
+        <p class="text-center mt-3">
+            No account? <a href="/register_customer">Customer</a> OR <a href="/register_owner">Owner</a>
+        </p>
+    </div>
+</div>
+
+<script>
+document.getElementById("loginForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    fetch("/login", {
+        method: "POST",
+        body: new FormData(this)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(!data.success){
+            const box = document.getElementById("errorBox");
+            box.innerText = data.error;
+            box.classList.remove("d-none");
+        } else {
+            window.location.href = data.redirect;
+        }
+    });
+});
+</script>
+
+</body>
+</html>

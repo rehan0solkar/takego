@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Stall Products</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+{% extends "layout.html" %}
+
+{% block title %}Stall Products{% endblock %}
+<div id="toast" class="toast hidden"></div>
+{% block content %}
+
+<header class="navbar">
+    <h1 class="logo">Products</h1>
+    <nav>
+        <a href="/customer" class="btn btn-outline-light me-2">Back</a>
+    </nav>
+</header>
+<input id="search" onkeyup="filterProducts('search', '.product-card')" placeholder="Search products">
+
+<div class="product-grid">
+    {% for p in products %}
+    <div class="product-card">
+
+        {% if p[5] %}
+        <img
+  src="{{ url_for('static', filename='uploads/' ~ p.image) }}"
+  alt="{{ p.name }}"
+  style="width:100%; height:180px; object-fit:cover;"
+>
+            
+        {% else %}
+            <img src="{{ url_for('static', filename='icons/no-image.png') }}" class="product-img">
+        {% endif %}
+
+        <h3>{{ p[1] }}</h3>
+
+        <p class="price">₹{{ p[2] }}</p>
+        <p class="prep">⏱ {{ p[3] }} mins</p>
+        <p>Current Token: <span id="liveToken"></span></p>
+
+        {% if p[4] > 0 %}
+            <span class="badge in">In Stock ({{ p[4] }})</span>
+
+            <input type="number"
+                   id="qty-{{ p[0] }}"
+                   min="1"
+                   max="{{ p[4] }}"
+                   value="1"
+                   class="qty-input">
+
+            <button class="generate-token-btn"
+                    data-product-id="{{ p[0] }}"
+                    data-qty-id="qty-{{ p[0] }}">
+                Generate Token
+            </button>
+
+        {% else %}
+            <span class="badge out">Out of Stock</span>
+        {% endif %}
+
+    </div>
+    {% endfor %}
+</div>
+
+{% if token %}
+<div class="token-popup">
+    Token no. {{ token }}
+</div>
+{% endif %}
+<script>
+console.log("🔥 generate-token JS LOADED");
+
+document.addEventListener("click", function (e) {
+
+    const btn = e.target.closest(".generate-token-btn");
+    if (!btn) return;
+
+    e.preventDefault();
+
+    if (btn.disabled) return;   // ⛔ double click block
+    btn.disabled = true;
+
+    const productId = btn.dataset.productId;
+    const qtyInputId = btn.dataset.qtyid;
+    const quantity = document.getElementById(qtyInputId)?.value || 1;
+
+    fetch("/generate_token", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `product_id=${productId}&quantity=${quantity}`
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (!data.success) {
+            btn.disabled = false;
+            return;
+        }
+
+        /* ===============================
+           🟣 PURPLE TOKEN POPUP AUTO REMOVE
+           =============================== */
+        const popup = document.querySelector(".token-popup");
+        if (popup) {
+            setTimeout(() => {
+                popup.remove();
+            }, 1500);   // ✅ 1.5 sec (as you asked)
+        }
+
+        /* ===============================
+           🔄 FAST RELOAD (NO LAG FEEL)
+           =============================== */
+        setTimeout(() => {
+            window.location.reload();
+        }, 1700);       // ✅ smooth, fast
+
+    })
+    .catch(() => {
+        btn.disabled = false;
+    });
+});
+</script>
+
+{% endblock %}
+
+</body>
+</html>

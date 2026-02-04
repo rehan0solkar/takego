@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}TakeGo{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<style>.logo svg {
+  height: 42px;
+  cursor: pointer;
+}
+</style>
+<body>
+
+<header class="main-header">
+  <a href="{{ url_for('home') }}" class="logo">
+    <svg
+  width="180"
+  height="48"
+  viewBox="0 0 180 48"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+
+  <!-- Arrow / Speed Icon -->
+  <path
+    d="M8 24H38L26 12M38 24L26 36"
+    stroke="url(#grad1)"
+    stroke-width="4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <line x1="2" y1="18" x2="18" y2="18" stroke="#1ccad8" stroke-width="4" stroke-linecap="round"/>
+  <line x1="2" y1="24" x2="14" y2="24" stroke="#1ccad8" stroke-width="4" stroke-linecap="round"/>
+  <line x1="2" y1="30" x2="18" y2="30" stroke="#1ccad8" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Text -->
+  <text
+    x="55"
+    y="32"
+    font-size="26"
+    font-weight="700"
+    font-family="Segoe UI, Arial, sans-serif"
+    fill="#1f6fe5"
+  >
+    Take
+  </text>
+
+  <text
+    x="115"
+    y="32"
+    font-size="26"
+    font-weight="700"
+    font-family="Segoe UI, Arial, sans-serif"
+    fill="#2ecc71"
+  >
+    Go
+  </text>
+
+  <!-- Gradient -->
+  <defs>
+    <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1ccad8"/>
+      <stop offset="100%" stop-color="#2ecc71"/>
+    </linearGradient>
+  </defs>
+</svg>
+  </a>
+</header>
+
+{% block content %}{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Canteen System{% endblock %}</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+</head>
+<body>
+ {% set user = current_user() %}
+
+
+<!-- 🔔 FLASH MESSAGE (CENTER) -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="flash-container">
+      {% for category, message in messages %}
+        <div class="flash-message {{ category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- 🔹 MAIN CONTENT -->
+{% block content %}{% endblock %}
+
+<!-- 🧠 AUTO HIDE FLASH -->
+<script>
+setTimeout(() => {
+  const flash = document.getElementById("flash-container");
+  if (!flash) return;
+
+    const messages = JSON.parse(flashDiv.dataset.messages);
+
+    messages.forEach(([category, message]) => {
+        showToast(message, category);
+    });
+}, 2500);
+</script>
+</body>
+</html>

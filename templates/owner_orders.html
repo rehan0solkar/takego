@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Owner Orders</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+    <audio id="newOrderSound">
+  <source src="/static/sounds/new.mp3" type="audio/mpeg"></audio>
+</head>
+<style>
+.order-row{padding:12px;border-bottom:1px solid #eee; animation: flash .6s;transition:.2s}
+.order-row:hover{background:#f9f9f9}
+.token-badge{background:#000;color:#fff;padding:6px 12px;border-radius:20px;font-weight:600}
+@keyframes flash{
+ from{background:#d4edda}
+ to{background:#fff}
+}
+</style>
+<body>
+<header class="navbar">
+    <h1 class="logo">Orders</h1>
+    <nav>
+        <a href="/owner">Back</a>
+        <a href="/logout">Logout</a>
+    </nav>
+</header>
+<main class="container">
+    <h2>Incoming Orders</h2>
+
+<table class="owner-orders-table">
+  <thead>
+    <tr>
+      <th>Token</th>
+      <th>Status</th>
+      <th>Product</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+
+  <tbody id="ordersBox">
+    {% include "owner_orders_partial.html" %}
+  </tbody>
+</table>
+</main>
+<script>
+let lastOrderCount = 0;
+setInterval(() => {
+  fetch("/owner_orders_partial")
+    .then(r => r.text())
+    .then(html => {
+      const container = document.getElementById("ordersBox");
+
+      // temporary parse
+      const temp = document.createElement("div");
+      temp.innerHTML = html;
+
+      const newCount = temp.querySelectorAll(".order-card").length;
+
+      if (newCount > lastOrderCount && lastOrderCount !== 0) {
+        playSound();
+      }
+
+      lastOrderCount = newCount;
+      container.innerHTML = html;
+    });
+}, 5000);
+
+let lastCount = 0;
+let soundUnlocked = false;
+const orderSound = new Audio("/static/sounds/new.mp3");
+orderSound.preload = "auto";
+document.addEventListener("click", () => {
+    if (!soundUnlocked) {
+        orderSound.play().then(() => {
+            orderSound.pause();
+            orderSound.currentTime = 0;
+            soundUnlocked = true;
+            console.log("🔓 Sound unlocked");
+        }).catch(() => {});
+    }
+}, { once: true });
+
+function refreshOrders() {
+  fetch("/owner_orders_partial")
+    .then(res => {
+      if (!res.ok) throw "error";
+      return res.text();
+    })
+    .then(html => {
+      const container = document.getElementById("orders-container");
+
+      // temp parse
+      const temp = document.createElement("div");
+      temp.innerHTML = html;
+
+      const newCount = temp.querySelectorAll(".order-card").length;
+
+      if (lastCount !== 0 && newCount > lastCount) {
+        playSound(); // tera existing function
+      }
+
+      lastCount = newCount;
+      container.innerHTML = html;
+    })
+    .catch(() => {
+      console.log("Order refresh failed");
+    });
+}
+setInterval(refreshOrders, 5000);
+
+  document.querySelectorAll(".eta").forEach(el => {
+    const end = new Date(el.dataset.time);
+    if (isNaN(end)) return;
+
+    const mins = Math.max(
+      0,
+      Math.ceil((end - new Date()) / 60000)
+    );
+    el.innerText = "Time left: " + mins + " mins";
+  });
+const diff = end - new Date();
+if (diff <= 0) {
+  fetch("/auto_ready/" + el.dataset.orderId, { method: "POST" });
+}
+function loadOrders(){
+ fetch("/owner_orders_partial")
+ .then(r=>r.text())
+ .then(html=>{
+   const box = document.getElementById("ordersBox");
+   if (soundUnlocked) {
+    orderSound.currentTime = 0;
+    orderSound.play();
+}
+ });
+}
+setInterval(loadOrders, 3000);
+</script>
+</body>
+</html>
+
+
+

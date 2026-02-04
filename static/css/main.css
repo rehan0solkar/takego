@@ -1,0 +1,206 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+a {
+  text-decoration: none;
+  color: inherit;
+}
+body {
+    background-color: #f4f6f9;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.hero {
+    background: linear-gradient(135deg, #595fd6, #a1a6ff);
+    color: white;
+    padding: 200px 20px;
+}
+.takego-nav {
+  background: rgba(15, 15, 30, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+.logo-dot {
+  width: 10px;
+  height: 10px;
+  background: #ffc107;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.nav-btn {
+  border-radius: 30px;
+  padding: 6px 18px;
+}
+
+.hero h1 {
+    font-size: 3rem;
+}
+
+.site-footer {
+  border-top: 4px solid rgba(255,255,255,0.15);
+  background: linear-gradient(135deg, #5159c4, #796aff);
+  color: white;
+  padding: 60px 40px 0;
+  font-family: Arial, sans-serif;
+}
+.footer-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 50px;
+}
+.footer-brand h2 {
+    font-size: 28px;
+    margin-bottom: 12px;
+}
+
+.footer-brand p {
+    color: #e0e3ff;
+    max-width: 420px;
+    font-size: 14px;
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+.social-icons {
+  margin: 20px 0;
+}
+
+.social-icons a {
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 36px;
+    margin-right: 10px;
+    color: white;
+    transition: 0.5s;
+}
+
+.social-icons a:hover {
+    background: white;
+    color: white;
+}
+
+.back-to-top {
+  display: inline-block;
+  margin-top: 15px;
+  font-size: 13px;
+  color: #dfeeee;
+  text-decoration: none;
+}
+.footer-links h4 {
+    color: #e0e3ff;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.footer-links ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-links ul li {
+    margin-bottom: 8px;
+}
+
+.footer-links ul li a {
+    text-decoration: none;
+    color: #e0e3ff;
+    font-size: 14px;
+    transition: 0.5s;
+}
+
+.footer-links ul li a:hover {
+    color: #e0e3ff;
+    padding-left: 4px;
+}
+
+.icon {
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.icon:hover {
+  transform: scale(1.15);
+}
+@media (max-width: 768px) {
+    .footer-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .site-footer {
+        padding: 40px 30px 0;
+    }
+}
+.footer-column a:hover {
+    color: #ffffff;
+}
+.takego-footer {
+  background: linear-gradient(180deg, #00143f, #000068);
+  color: #ccc;
+  padding-top: 60px;
+}
+
+.footer-logo {
+  color: #fff;
+  font-weight: 800;
+}
+
+.footer-text {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.takego-footer h5 {
+  color: #fff;
+  margin-bottom: 15px;
+}
+
+.takego-footer ul {
+  list-style: none;
+  padding: 0;
+}
+
+.takego-footer ul li {
+  margin-bottom: 10px;
+}
+
+.takego-footer ul li a {
+  color: #aaa;
+  text-decoration: none;
+}
+
+.takego-footer ul li a:hover {
+  color: #ffc107;
+}
+
+.footer-social a {
+  display: inline-block;
+  margin-right: 10px;
+  color: #fff;
+  background: #1a1a2e;
+  padding: 10px;
+  border-radius: 50%;
+}
+
+.footer-social a:hover {
+  background: #ffc107;
+  color: #000;
+}
+
+.footer-bottom {
+  border-top: 1px solid #000000;
+  margin-top: 50px;
+  padding: 13px;
+  font-size: 15px;
+  text-align: center;
+  background: rgb(27, 22, 78);
+}

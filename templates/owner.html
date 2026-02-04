@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Owner Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+</head>
+<body>
+<header class="navbar">
+    <h1 class="logo">Add Products</h1>
+    <nav>
+        <a href="/owner_orders">View Orders</a>
+        <a href="/logout">Logout</a>
+    </nav>
+</header>
+
+<main class="container">
+    <h2>My Products</h2>
+
+    <table class="product-table">
+        <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Prep Time</th>
+            <th>Availability</th>
+            <th>Actions</th>
+        </tr>
+        {% if not products %}
+        <p style="opacity:0.6">No products added yet.</p>
+        {% endif %}
+        {% for p in products %}
+        <tr>
+            <td>{{ p[1] }}</td>
+            <td>₹{{ p[2] }}</td>
+            <td>{{ p[3] }} mins</td>
+            <td>{{ p[4] }}</td>
+            <td class="actions">
+
+      <!-- ✏️ UPDATE -->
+      <a href="/update_product/{{ p[0] }}" title="Update">
+        <img src="{{ url_for('static', filename='icons/edit.png') }}"
+             class="icon">
+      </a>
+
+      <!-- 🗑️ DELETE (CUSTOM MODAL) -->
+      <a href="javascript:void(0)"
+         onclick="openDeleteModal('/delete_product/{{ p[0] }}')"
+         title="Delete">
+        <img src="{{ url_for('static', filename='icons/delete.png') }}"
+             class="icon">
+      </a>
+
+    </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <div id="deleteModal" class="modal">
+  <div class="modal-box">
+    <p>Delete this product?</p>
+    <div class="actions">
+      <button onclick="confirmDelete()" class="btn primary">OK</button>
+      <button onclick="closeModal()" class="btn danger">Cancel</button>
+    </div>
+  </div>
+</div>
+
+    <h4>Add New Product</h4>
+    <form method="post" action="/add_product" enctype="multipart/form-data" class="form inline">
+        <input type="text" name="product_name" placeholder="Product Name" required>
+        <input type="number" name="price" placeholder="Price" min="1" required>
+        <input type="number" name="prep_time" placeholder="Prep Time" min="1" required>
+        <input type="number" name="availability" placeholder="Availability" min="1" required>
+        <label class="upload-box">
+  <span class="upload-left">
+    <strong id="uploadTitle">Product Image</strong>
+  </span>
+
+  <u><span class="upload-right" id="uploadStatus">
+    Browse
+  </span></u>
+
+  <input
+    type="file"
+    name="product_image"
+    id="productImage"
+    accept="image/*"
+    hidden
+  >  
+            </label>
+        <button type="submit" class="btn primary">Add</button>
+    </form>
+</main>
+<script>
+let deleteUrl = "";
+
+function openDeleteModal(url) {
+  deleteUrl = url;
+  document.getElementById("deleteModal").style.display = "flex";  // ✅ yahan open
+}
+
+function closeModal() {
+  document.getElementById("deleteModal").style.display = "none";  // ✅ yahan close
+}
+
+function confirmDelete() {
+  window.location.href = deleteUrl;
+}
+const input = document.getElementById("productImage");
+const title = document.getElementById("uploadTitle");
+const sub = document.getElementById("uploadSub");
+const box = document.querySelector(".upload-box");
+const status = document.getElementById("uploadStatus");
+
+input.addEventListener("change", () => {
+  if (input.files.length > 0) {
+    title.textContent = "Product image added";
+    sub.textContent = input.files[0].name;
+    status.textContent = "Uploaded";
+    box.classList.add("uploaded");
+  }
+});
+</script>
+</body>
+</html>

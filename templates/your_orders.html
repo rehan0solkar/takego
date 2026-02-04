@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+
+{% block title %}Your Orders{% endblock %}
+
+{% block content %}
+
+<header class="navbar">
+    <h1 class="logo">Your Orders</h1>
+    <nav>
+        <a href="/customer">Back</a>
+        {% if user %}
+  <a href="/logout">Logout</a>
+{% endif %} 
+    </nav>
+</header>
+{% for o in orders %}
+<div class="order-card">
+
+  <div class="order-header">
+    <div>
+      <b>ORDER PLACED</b><br>
+      {{ o.created_at }}
+    </div>
+
+    <div>
+      <b>TOTAL</b><br>
+      ₹{{ o.total_price }}
+    </div>
+
+    <div>
+      <b>ORDER #</b><br>
+      {{ o.token }}
+    </div>
+
+    <div>
+      {% if o.status == "rejected" %}
+  <span class="status rejected">Rejected by Owner</span>
+{% elif o.status == "ready" %}
+  <span class="status ready">Ready for pickup</span>
+{% elif o.status == "accepted" %}
+    {% if o.remaining is not none %}
+    <span class="status accepted">Takeaway in • {{ o.remaining }} mins</span>
+{% else %}
+    <span>-</span>
+{% endif %}
+{% elif o.status == "pending" %}
+  <span class="status pending">Waiting for acceptance</span>
+  {% else %}
+  <span class="status rejected">Cancelled by you</span>
+{% endif %}
+    </div>
+  </div>
+
+  <div class="order-body">
+    {% for item in order_items[o.id] %}
+      <div class="order-item">
+        {% if item.image %}
+          <img src="{{ url_for('static', filename='uploads/' ~ item.image) }}">
+        {% else %}
+          <img src="{{ url_for('static', filename='icons/no-image.png') }}">
+        {% endif %}
+
+        <div>
+          <b>{{ item.product_name }}</b><br>
+          Qty: {{ item.quantity }}
+        </div>
+        {% if o.status in ["pending", "accepted"] %}
+  <form action="/cancel_order/{{ o.id }}" method="post" style="display:inline;">
+    <button class="cancel-btn">Cancel</button>
+  </form>
+{% endif %}
+
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endfor %}
+
+{% endblock %}

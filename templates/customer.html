@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+</head>
+<body>
+<header class="navbar">
+    <h1 class="logo">Welcome</h1>
+    <nav>
+        <a href="/order_history">Your Orders</a>
+        <a href="/logout">Logout</a>
+    </nav>
+</header>
+<input id="search" onkeyup="filterProducts('search', '.product-card')" placeholder="Search Stall">
+
+<main class="container">
+    <h2>Available Stalls</h2>
+    <div class="product-grid">
+        {% for s in stalls %}
+        <div class="product-card">
+            <h3>{{ s[1] }}</h3>
+            <a class="btn product-btn" href="/stall/{{ s[0] }}">
+                View Products
+            </a>
+        </div>
+        {% endfor %}
+        </div>
+</main>
+<script>
+    function filterOrders() {
+  const q = document.getElementById("searchOrders").value.toLowerCase();
+  document.querySelectorAll(".order-card").forEach(card => {
+    card.style.display = card.innerText.toLowerCase().includes(q)
+      ? "block" : "none";
+  });
+}
+</script>
+</body>
+</html>
