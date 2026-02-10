@@ -93,7 +93,9 @@ input {
 }
 
 .btn.small {
-    font-size: 12px;
+    background: white;
+    color: #000;
+    font-size: 16px;
     padding: 5px 8px;
 }
 
@@ -306,8 +308,6 @@ button {
     cursor: pointer;
 }
 
-.toast.success { background: #28a745; }
-.toast.error { background: #dc3545; }
 .status.pending { color: orange; }
 .status.accepted { color: green; }
 .status.rejected { color: red; }
@@ -591,25 +591,29 @@ button {
     transform: translateY(0);
 }
 .toast {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #e74c3c;
-    color: white;
-    padding: 14px 26px;
-    border-radius: 8px;
-    font-size: 15px;
-    z-index: 9999;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-    transition: opacity 0.3s ease, top 0.3s ease;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #7b2cbf;
+  color: white;
+  padding: 16px 28px;
+  border-radius: 12px;
+  font-size: 18px;
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
 .toast.hidden {
-    opacity: 0;
-    pointer-events: none;
-    top: 0;
+  opacity: 0;
+  transform: translate(-50%, -60%);
+  pointer-events: none;
 }
+.toast.success { background: #28a745; }
+.toast.error { background: #dc3545; }
+.toast.info    { background: #7b2cbf; }
+
 
 .product-img {
     width: 100%;
@@ -627,3 +631,153 @@ img {
     opacity: 1;
     visibility: visible;
 }
+
+.settings-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 120%;
+  background: white;
+  min-width: 180px;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  overflow: hidden;
+  z-index: 999;
+}
+
+.dropdown-menu a {
+  display: block;
+  padding: 12px 16px;
+  color: #333;
+  text-decoration: none;
+}
+
+.dropdown-menu a:hover {
+  background: #f2f2f2;
+}
+
+.hidden {
+  display: none;
+}
+.menu-icon {
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  filter: invert(1); /* agar navbar dark hai */
+}
+
+.swipe-thumb {
+  position: absolute;
+  left: 6px;              /* ⬅️ always start left */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  background: #111;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+
+  /* 🔥 kill text completely */
+  font-size: 0;
+  line-height: 0;
+}
+
+.swipe-icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+  filter: invert(1); /* white on dark */
+  pointer-events: none;
+}
+
+.hidden {
+  display: none;
+}
+
+.swipe-track {
+  position: relative;
+  overflow: visible; 
+  height: 46px;
+  background: #eaeaea;
+  border-radius: 30px;
+  margin-top: 15px;
+  overflow: hidden;
+}
+
+.swipe-text {
+  position: absolute;
+  width: 100%;
+  line-height: 46px;
+  font-size: 14px;
+  color: #555;
+  pointer-events: none;
+}
+
+.swipe-thumb img {
+  width: 20px;
+  height: 20px;
+  filter: invert(1);
+}
+.swipe-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.swipe-modal:not(.hidden) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+
+.swipe-box {
+  background: #fff;
+  padding: 20px;
+ width: 380px;          /* 🔥 pehle ~320px thi */
+  max-width: 90vw;       /* mobile safe */
+  padding: 24px 26px; 
+  border-radius: 10px;
+  text-align: center;
+  transform: translateY(10px) scale(0.98);
+  transition: transform 0.25s ease;
+}
+
+.swipe-modal:not(.hidden) .swipe-box {
+  transform: translateY(0) scale(1);
+}
+.swipe-modal.hidden {
+  display: none;
+}
+.confirm-btn {
+  min-width: 160px;      /* 🔥 pehle chhota lag raha tha */
+  padding: 12px 0;
+  font-size: 16px;
+  border-radius: 8px;
+}
+.confirm-actions {
+  margin-top: 20px;
+}
+
+#confirmYes { background: #e74c3c; color: white; }
+#confirmNo  { background: #555; color: white; }

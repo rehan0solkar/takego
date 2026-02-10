@@ -1,6 +1,7 @@
 {% if orders %}
 {% for o in orders %}
 <tr class="order-row">
+
   <!-- TOKEN -->
   <td>
     <span class="token-badge">{{ o.token }}</span>
@@ -13,9 +14,7 @@
   {% elif o.status == 'accepted' %}
     <span class="status status-accepted">Preparing</span><br>
     {% if o.remaining is not none %}
-    <small  class="eta"
-      data-time="{{ o.ready_at }}"
-      data-order-id="{{ o.id }}">Prepare in: {{ o.remaining }} mins</small>
+  <small class="eta-text">Prepare in: {{ o.remaining }} mins</small>
   {% endif %}
   {% elif o.status == 'ready' %}
     <span class="status status-ready">Done</span>
@@ -25,6 +24,7 @@
     —
   {% endif %}
 </td>
+
   <!-- PRODUCT + IMAGE -->
   <td>
    {{ o['items'] }}
@@ -46,14 +46,12 @@
                 <p class="badge muted">Order Cancelled by Customer</p>
     {% endif %}
   </td>
-{% else %}
-    <tr>
-        <td colspan="4" style="text-align:center;">No incoming orders</td>
-    </tr>
+
 </tr>
 {% endfor %}
+{% else %}
+  <p>No active orders</p>
 {% endif %}
-<button id="soundUnlock" style="display:none"></button>
 <style>
 .btn {
   padding: 4px 7px;

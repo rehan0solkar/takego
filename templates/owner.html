@@ -3,17 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <title>Owner Dashboard</title>
+    
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
 </head>
 <body>
 <header class="navbar">
-    <h1 class="logo">Add Products</h1>
-    <nav>
+  <h1 class="logo">Add Products</h1>
+
+  <nav class="nav-right">
+    <div class="dropdown">
+      <img
+        src="{{ url_for('static', filename='icons/menu.svg') }}"
+        id="settingsBtn"
+        class="menu-icon"
+        alt="menu"
+      >
+
+      <div id="settingsMenu" class="dropdown-menu hidden">
         <a href="/owner_orders">View Orders</a>
+        <button id="clearOrdersBtn" class="btn small" type="button">
+          Clear Orders
+        </button>
         <a href="/logout">Logout</a>
-    </nav>
+      </div>
+    </div>
+  </nav>
 </header>
+<div id="confirmModal" class="swipe-modal hidden">
+  <div class="swipe-box">
+    <p>Are you sure you want to clear all orders?</p>
+
+   <div class="confirm-actions">
+  <button
+    id="confirmYes"
+    class="btn confirm-btn"
+    type="button"
+  >
+    Yes
+  </button>
+
+  <button
+    id="confirmNo"
+    class="btn confirm-btn"
+    type="button"
+  >
+    No
+  </button>
+</div>
+
+  </div>
+</div>
+<div id="swipeModal" class="swipe-modal hidden">
+  <div class="swipe-box">
+
+    <div class="swipe-track">
+      <div id="swipeThumb" class="swipe-thumb">
+        <img
+          src="{{ url_for('static', filename='icons/arrow-right.svg') }}"
+          alt="Swipe"
+        />
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <main class="container">
     <h2>My Products</h2>
@@ -39,7 +93,7 @@
 
       <!-- ✏️ UPDATE -->
       <a href="/update_product/{{ p[0] }}" title="Update">
-        <img src="{{ url_for('static', filename='icons/edit.png') }}"
+        <img src="{{ url_for('static', filename='icons/edit.svg') }}"
              class="icon">
       </a>
 
@@ -47,7 +101,7 @@
       <a href="javascript:void(0)"
          onclick="openDeleteModal('/delete_product/{{ p[0] }}')"
          title="Delete">
-        <img src="{{ url_for('static', filename='icons/delete.png') }}"
+        <img src="{{ url_for('static', filename='icons/delete.svg') }}"
              class="icon">
       </a>
 
@@ -92,34 +146,211 @@
     </form>
 </main>
 <script>
+/* ==========================
+   CONSTANTS
+========================== */
+const START_LEFT = 6;
 let deleteUrl = "";
+let isDragging = false;
+let startX = 0;
+let maxX = 0;
 
+/* ==========================
+   DELETE PRODUCT MODAL
+========================== */
 function openDeleteModal(url) {
   deleteUrl = url;
-  document.getElementById("deleteModal").style.display = "flex";  // ✅ yahan open
+  document.getElementById("deleteModal").style.display = "flex";
 }
 
 function closeModal() {
-  document.getElementById("deleteModal").style.display = "none";  // ✅ yahan close
+  document.getElementById("deleteModal").style.display = "none";
 }
 
 function confirmDelete() {
   window.location.href = deleteUrl;
 }
-const input = document.getElementById("productImage");
-const title = document.getElementById("uploadTitle");
-const sub = document.getElementById("uploadSub");
-const box = document.querySelector(".upload-box");
-const status = document.getElementById("uploadStatus");
 
-input.addEventListener("change", () => {
-  if (input.files.length > 0) {
-    title.textContent = "Product image added";
-    sub.textContent = input.files[0].name;
-    status.textContent = "Uploaded";
-    box.classList.add("uploaded");
+/* ==========================
+   ELEMENTS
+========================== */
+const clearBtn     = document.getElementById("clearOrdersBtn");
+
+const confirmModal = document.getElementById("confirmModal");
+const confirmYes   = document.getElementById("confirmYes");
+const confirmNo    = document.getElementById("confirmNo");
+
+const swipeModal = document.getElementById("swipeModal");
+const swipeThumb = document.getElementById("swipeThumb");
+const swipeTrack = swipeThumb?.parentElement;
+
+const input  = document.getElementById("productImage");
+const title  = document.getElementById("uploadTitle");
+const status = document.getElementById("uploadStatus");
+const box    = document.querySelector(".upload-box");
+
+/* ==========================
+   IMAGE UPLOAD UI
+========================== */
+input?.addEventListener("change", () => {
+  if (!input.files.length) return;
+  title.textContent = "Product image added";
+  status.textContent = "Uploaded";
+  box.classList.add("uploaded");
+});
+
+/* ==========================
+   SWIPE RESET
+========================== */
+function resetSwipe() {
+  swipeThumb.style.transition = "none";
+  swipeThumb.style.left = START_LEFT + "px";
+}
+
+/* ==========================
+   CLEAR ORDERS → CONFIRM
+========================== */
+clearBtn?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  confirmModal.classList.remove("hidden");
+});
+
+/* ==========================
+   CONFIRM ACTIONS
+========================== */
+confirmYes?.addEventListener("click", () => {
+  confirmModal.classList.add("hidden");
+
+  swipeModal.classList.remove("hidden");
+  resetSwipe();
+
+  requestAnimationFrame(() => {
+    maxX =
+      swipeTrack.offsetWidth -
+      swipeThumb.offsetWidth -
+      START_LEFT;
+  });
+});
+
+confirmNo?.addEventListener("click", () => {
+  confirmModal.classList.add("hidden");
+});
+
+/* ==========================
+   DRAG HELPERS
+========================== */
+function getX(e) {
+  return e.touches ? e.touches[0].clientX : e.clientX;
+}
+
+/* ==========================
+   DRAG START
+========================== */
+function startDrag(e) {
+  isDragging = true;
+  startX = getX(e) - swipeThumb.offsetLeft;
+  swipeThumb.style.transition = "none";
+}
+
+/* ==========================
+   DRAG MOVE
+========================== */
+function onDrag(e) {
+  if (!isDragging) return;
+
+  let x = getX(e) - startX;
+  x = Math.max(START_LEFT, Math.min(x, maxX));
+
+  swipeThumb.style.left = x + "px";
+
+  const text = document.querySelector(".swipe-text");
+  if (text && maxX > 0) {
+    text.style.opacity = 1 - x / maxX;
+  }
+}
+
+/* ==========================
+   DRAG END
+========================== */
+function endDrag() {
+  if (!isDragging) return;
+  isDragging = false;
+
+  if (swipeThumb.offsetLeft >= maxX * 0.9) {
+    swipeThumb.style.left = maxX + "px";
+    clearAllOrders();
+  } else {
+    swipeThumb.style.transition =
+      "left 0.25s cubic-bezier(0.4, 0, 0.2, 1)";
+    resetSwipe();
+
+    const text = document.querySelector(".swipe-text");
+    if (text) text.style.opacity = 1;
+  }
+}
+
+/* ==========================
+   DRAG EVENTS
+========================== */
+swipeThumb?.addEventListener("mousedown", startDrag);
+document.addEventListener("mousemove", onDrag);
+document.addEventListener("mouseup", endDrag);
+
+swipeThumb?.addEventListener("touchstart", startDrag, { passive: true });
+document.addEventListener("touchmove", onDrag, { passive: true });
+document.addEventListener("touchend", endDrag);
+
+/* ==========================
+   CLEAR ORDERS API
+========================== */
+async function clearAllOrders() {
+  swipeThumb.style.cursor = "default";
+
+  try {
+    const res = await fetch("/settings/clear-orders", {
+      method: "POST",
+      credentials: "same-origin"
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      throw new Error(data.error || "Failed");
+    }
+
+    window.location.reload();
+  } catch (err) {
+    resetSwipe();
+    swipeThumb.style.cursor = "grab";
+    alert(err.message);
+  }
+}
+
+/* ==========================
+   CLOSE SWIPE MODAL ON BACKDROP
+========================== */
+swipeModal?.addEventListener("click", (e) => {
+  if (e.target === swipeModal) {
+    swipeModal.classList.add("hidden");
+    resetSwipe();
+  }
+});
+
+/* ==========================
+   SETTINGS MENU
+========================== */
+document.addEventListener("click", (e) => {
+  const btn  = document.getElementById("settingsBtn");
+  const menu = document.getElementById("settingsMenu");
+  if (!btn || !menu) return;
+
+  if (btn.contains(e.target)) {
+    menu.classList.toggle("hidden");
+  } else if (!menu.contains(e.target)) {
+    menu.classList.add("hidden");
   }
 });
 </script>
+
 </body>
 </html>

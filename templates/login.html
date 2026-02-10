@@ -18,7 +18,7 @@
             <input class="form-control mb-3" name="username" placeholder="Username" required>
             <input class="form-control mb-3" type="password" name="password" placeholder="Password" required>
 
-            <button class="btn btn-primary w-100">Login</button>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
         </form>
 
         <p class="text-center mt-3">
@@ -26,26 +26,33 @@
         </p>
     </div>
 </div>
-
 <script>
-document.getElementById("loginForm").addEventListener("submit", function(e){
-    e.preventDefault();
+document.querySelector("#loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
 
-    fetch("/login", {
-        method: "POST",
-        body: new FormData(this)
-    })
-    .then(res => res.json())
-    .then(data => {
-        if(!data.success){
-            const box = document.getElementById("errorBox");
-            box.innerText = data.error;
-            box.classList.remove("d-none");
-        } else {
-            window.location.href = data.redirect;
-        }
-    });
+  const formData = new FormData(e.target);
+
+  const res = await fetch("/login", {
+  method: "POST",
+  body: formData,
+  credentials: "same-origin"
 });
+  const data = await res.json();
+
+  const errorBox = document.getElementById("errorBox");
+  errorBox.classList.add("d-none");
+  if (!data.success) {
+    errorBox.innerText = data.error;
+    errorBox.classList.remove("d-none");
+    return;
+}
+
+  // 🔐 access token JS memory me
+  window.ACCESS_TOKEN = data.access_token;
+
+  window.location.href = data.redirect;
+});
+
 </script>
 
 </body>

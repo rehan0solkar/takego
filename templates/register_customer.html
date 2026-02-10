@@ -20,7 +20,7 @@
             <input class="form-control mb-3" type="password" name="password" placeholder="Password" required>
             <input class="form-control mb-3" type="password" name="confirm" placeholder="Confirm Password" required>
 
-            <button class="btn btn-success w-100">Create Account</button>
+            <button type="submit" class="btn btn-success w-100">Create Account</button>
         </form>
 
         <p class="text-center mt-3">
@@ -30,23 +30,26 @@
 </div>
 
 <script>
-document.getElementById("registerForm").addEventListener("submit", function(e){
+document.getElementById("registerForm")
+  .addEventListener("submit", async (e) => {
     e.preventDefault();
+    const formData = new FormData(e.target);
 
-    fetch("/register_customer", {
-        method: "POST",
-        body: new FormData(this)
-    })
-    .then(res => res.json())
-    .then(data => {
-        if(!data.success){
-            const box = document.getElementById("errorBox");
-            box.innerText = data.error;
-            box.classList.remove("d-none");
-        } else {
-            window.location.href = "/login";
-        }
+    const res = await fetch("/register_customer", {
+      method: "POST",
+      body: formData,
+      credentials: "same-origin"
     });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      document.getElementById("errorBox").innerText = data.error;
+      document.getElementById("errorBox").classList.remove("d-none");
+      return;
+    }
+
+    window.location.href = data.redirect;
 });
 </script>
 

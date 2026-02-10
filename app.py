@@ -1,14 +1,32 @@
 from flask import Flask, render_template, request, session, redirect, jsonify, flash, url_for
-import sqlite3
-import os, uuid
-from datetime import datetime, timedelta, timezone
+from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime, timedelta, timezone
+import sqlite3, jwt, os, uuid
 
 def hash_pw(pw):
     return generate_password_hash(pw)
 
 def check_pw(raw_password, hashed_password):
     return check_password_hash(hashed_password, raw_password)
+def create_access_token(user):
+    payload = {
+        "user_id": user["id"],
+        "username": user["username"],
+        "role": user["role"],
+        "exp": int((datetime.now(timezone.utc) + timedelta(minutes=JWT_ACCESS_EXP)).timestamp())
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+
+def create_refresh_token(user_id):
+    sid = str(uuid.uuid4())
+    payload = {
+        "user_id": user_id,
+        "sid": sid,
+        "exp": int((datetime.now(timezone.utc) + timedelta(days=JWT_REFRESH_EXP)).timestamp())
+    }
+    token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+    return token, sid
 
 def current_user():
     sid = session.get("active_sid")
@@ -16,8 +34,10 @@ def current_user():
         return None
     sessions = session.get("sessions", {})
     user = sessions.get(sid)
+    user = dict(user)
     if not user:
         return None
+    user = dict(user)
 
     # 🔥 ADD THIS (backward compatibility ke liye)
     if "user" not in user:
@@ -30,40 +50,66 @@ def current_user():
 #Eta timer
 def apply_eta_queue(orders):
     now = datetime.now(timezone.utc)
+
+    accepted = [
+        o for o in orders
+        if o["status"] == "accepted" and o["accepted_at"]
+    ]
+
+    accepted.sort(key=lambda o: o["accepted_at"])
+
     cumulative_minutes = 0
     final = []
 
-    for o in orders:
+    for o in accepted:
         o = dict(o)
-        if o["status"] not in ("pending", "accepted"):
+        prep = int(o["prep_time"])
+        accepted_at = datetime.fromisoformat(o["accepted_at"])
+
+        cumulative_minutes += prep
+        ready_at = accepted_at + timedelta(minutes=cumulative_minutes)
+
+        remaining = max(
+            0,
+            int((ready_at - now).total_seconds() // 60)
+        )
+
+        o["ready_at"] = ready_at.isoformat()
+        o["remaining"] = remaining
+        final.append(o)
+
+    for o in orders:
+        if o["status"] != "accepted":
+            o = dict(o)
             o["remaining"] = None
             o["ready_at"] = None
             final.append(o)
-            continue
-
-        if o.get("prep_time") and o.get("accepted_at"):
-            prep = int(o["prep_time"])
-            cumulative_minutes += prep
-            accepted = datetime.fromisoformat(
-                o["accepted_at"]
-            ).replace(tzinfo=timezone.utc)
-
-            ready_at = accepted + timedelta(minutes=cumulative_minutes)
-            remaining = max(0, int((ready_at - now).total_seconds() // 60))
-
-            o["remaining"] = remaining
-            o["ready_at"] = ready_at.isoformat()
-        else:
-            o["remaining"] = None
-            o["ready_at"] = None
-
-        final.append(o)
 
     return final
 
 
+def jwt_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        auth = request.headers.get("Authorization", "").replace("Bearer ", "")
+        if not auth:
+            return jsonify({"error": "Token missing"}), 401
+        try:
+            data = jwt.decode(auth, JWT_SECRET, algorithms=["HS256"])
+            request.jwt_user = data
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Token expired"}), 401
+        except Exception:
+            return jsonify({"error": "Invalid token"}), 401
+
+        return fn(*args, **kwargs)
+    return wrapper
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-key")
+JWT_SECRET = os.environ.get("JWT_SECRET", app.secret_key)
+JWT_ACCESS_EXP = 15        # minutes
+JWT_REFRESH_EXP = 7        # days
 def get_db():
     conn = sqlite3.connect("database.db", timeout=10, check_same_thread=False)
     conn.row_factory = sqlite3.Row
@@ -96,8 +142,10 @@ def login():
     ).fetchone()
     db.close()
 
-    if not user or not check_pw(password, user["password"]):
-        return jsonify(success=False, error="Invalid username or password")
+    if not user:
+        return jsonify(success=False, error="Invalid Username")
+    if not check_pw(password, user["password"]):
+        return jsonify(success=False, error="Password Not Matched")
 
     # ✅ session set
     sid = str(uuid.uuid4())
@@ -109,11 +157,21 @@ def login():
         "username": user["username"],
         "role": user["role"]
     }
+    access_token = create_access_token(user)
+    refresh_token, sid = create_refresh_token(user["id"])
+    db = get_db()
+    db.execute("""
+    INSERT INTO refresh_tokens (user_id, token, sid, expires_at)
+    VALUES (?, ?, ?, ?)
+    """, (user["id"], refresh_token, sid, (datetime.now(timezone.utc) + timedelta(days=JWT_REFRESH_EXP)).isoformat()))
+    db.commit()
+    db.close()
 
     # ✅ tell frontend where to go
     redirect_url = "/customer" if user["role"] == "customer" else "/owner"
-
-    return jsonify(success=True, redirect=redirect_url)
+    resp = jsonify(success=True, redirect=redirect_url, access_token=access_token)
+    resp.set_cookie("refresh_token", refresh_token, httponly=True, samesite="Lax", max_age=JWT_REFRESH_EXP * 24 * 60 * 60)
+    return resp
 
 # ================= REGISTER OWNER =================
 @app.route("/register_owner", methods=["GET", "POST"])
@@ -158,7 +216,6 @@ def register_owner():
         owner_id = db.execute(
             "SELECT id FROM users WHERE username=?", (username,)
         ).fetchone()[0]
-
         db.execute(
             "INSERT INTO stalls (stall_name, owner_id) VALUES (?, ?)",
             (stall_name, owner_id)
@@ -178,7 +235,10 @@ def register_owner():
     finally:
         db.close()
 
-    return redirect("/login")
+    return jsonify(
+    success=True,
+    redirect="/login"
+)
 
 
 # ================= REGISTER CUSTOMER =================
@@ -215,7 +275,10 @@ def register_customer():
         db.commit()
     finally:
         db.close()
-    return jsonify(success=True)
+    return jsonify(
+    success=True,
+    redirect="/login"
+)
 
 # ================= CUSTOMER =================
 @app.route("/customer")
@@ -252,7 +315,8 @@ def stall_products(stall_id):
 # ================= OWNER =================
 @app.route("/owner")
 def owner():
-    if not current_user() or current_user()["role"] != "owner":
+    user = current_user()
+    if not user or user["role"] != "owner":
         return redirect("/login")
 
     db = get_db()
@@ -275,7 +339,7 @@ def owner():
 @app.route("/add_product", methods=["POST"])
 def add_product():
     user = current_user()
-    if not user:
+    if not user or user["role"] != "owner":
         return redirect("/login")
 
     name = request.form.get("product_name")
@@ -388,7 +452,8 @@ def generate_token():
 # ================= OWNER ORDERS =================
 @app.route("/owner_orders")
 def owner_orders():
-    if not current_user() or current_user()["role"] != "owner":
+    user = current_user()
+    if not user or user["role"] != "owner":
         return redirect("/login")
 
     db = get_db()
@@ -399,7 +464,6 @@ def owner_orders():
         o.token,
         o.status,
         o.accepted_at,
-        o.remaining,
         SUM(oi.quantity * p.price) AS total_price,
         GROUP_CONCAT(p.product_name || ' x ' || oi.quantity) AS items,
         SUM(p.prep_time * oi.quantity) AS prep_time
@@ -455,7 +519,6 @@ def owner_orders_partial():
         o.token,
         o.status,
         o.accepted_at,
-        o.remaining,
         SUM(oi.quantity * p.price) AS total_price,
         GROUP_CONCAT(p.product_name || ' x ' || oi.quantity) AS items,
         SUM(p.prep_time * oi.quantity) AS prep_time
@@ -484,27 +547,6 @@ ORDER BY
         "owner_orders_partial.html",
         orders=orders_with_eta
     )
-
-# ACCEPT ORDER
-@app.route("/accept_order/<int:order_id>", methods=["POST"])
-def accept_order(order_id):
-    db = get_db()
-    order = db.execute("""
-        SELECT id FROM orders
-        WHERE id=? AND status='pending'
-    """, (order_id,)).fetchone()
-
-    if order:
-        db.execute("""
-    UPDATE orders
-    SET status = 'accepted',
-        accepted_at = CURRENT_TIMESTAMP
-    WHERE id = ?
-        """, (order_id,))
-        db.commit()
-
-    db.close()
-    return redirect("/owner_orders")
 
 # TOKEN COUNTER 
 @app.route("/current_token")
@@ -538,20 +580,24 @@ def update_order_status(order_id, status):
         "SELECT status FROM orders WHERE id=?",
         (order_id,)
     ).fetchone()
+
     if not order or order["status"] == "cancelled":
         db.close()
         return redirect("/owner_orders")
+
+    # 🔥 time yahin lo (ONLY HERE)
+    now_iso = datetime.now(timezone.utc).isoformat()
 
     # 1️⃣ PENDING → ACCEPTED
     if order["status"] == "pending" and status == "accepted":
         db.execute(
             """
             UPDATE orders
-            SET status = 'accepted',
-                accepted_at = CURRENT_TIMESTAMP
-            WHERE id = ?
+            SET status='accepted',
+                accepted_at=?
+            WHERE id=?
             """,
-            (order_id,)
+            (now_iso, order_id)
         )
 
     # 2️⃣ PENDING → REJECTED
@@ -559,8 +605,8 @@ def update_order_status(order_id, status):
         db.execute(
             """
             UPDATE orders
-            SET status = 'rejected'
-            WHERE id = ?
+            SET status='rejected'
+            WHERE id=?
             """,
             (order_id,)
         )
@@ -570,11 +616,12 @@ def update_order_status(order_id, status):
         db.execute(
             """
             UPDATE orders
-            SET status = 'ready'
-            WHERE id = ?
+            SET status='ready'
+            WHERE id=?
             """,
             (order_id,)
         )
+
     db.commit()
     db.close()
     return redirect("/owner_orders")
@@ -594,7 +641,6 @@ def order_history():
         o.status,
         SUM(oi.quantity * p.price) AS total_price,
         o.accepted_at,
-        o.remaining,
         GROUP_CONCAT(p.product_name || ' x' || oi.quantity) AS items,
         SUM(p.prep_time * oi.quantity) AS prep_time
     FROM orders o
@@ -605,9 +651,9 @@ def order_history():
         o.id
 ORDER BY
     CASE o.status
+        WHEN 'accepted' THEN 1
         WHEN 'ready' THEN 1
         WHEN 'pending' THEN 2
-        WHEN 'accepted' THEN 2
         WHEN 'cancelled' THEN 3
         WHEN 'rejected' THEN 3
     END,
@@ -632,7 +678,6 @@ ORDER BY
 
 
     db.close()
-
     return render_template(
         "your_orders.html",
         orders=orders_with_eta,
@@ -643,7 +688,8 @@ ORDER BY
 # UPDATE product
 @app.route("/update_product/<int:pid>", methods=["GET", "POST"])
 def update_product(pid):
-    if not current_user() or current_user()["role"] != "owner":
+    user = current_user()
+    if not user or user["role"] != "owner":
         return redirect("/login")
 
     db = get_db()
@@ -681,7 +727,8 @@ def update_product(pid):
 # DELETE PRODUCT
 @app.route("/delete_product/<int:pid>")
 def delete_product(pid):
-    if not current_user() or current_user()["role"] != "owner":
+    user = current_user()
+    if not user or user["role"] != "owner":
         return redirect("/login")
 
     db = get_db()
@@ -696,7 +743,8 @@ def delete_product(pid):
 # CANCEL ORDER
 @app.route("/cancel_order/<int:order_id>", methods=["POST"])
 def cancel_order(order_id):
-    if not current_user():
+    user = current_user()
+    if not user or user["role"] != "customer":
         return redirect("/login")
 
     db = get_db()
@@ -734,18 +782,98 @@ def cancel_order(order_id):
 
     return redirect("/order_history")
 
+#REFRESH TOKEN
+@app.route("/refresh", methods=["POST"])
+def refresh():
+    token = request.cookies.get("refresh_token")
+    if not token:
+        return jsonify({"error": "No refresh token"}), 401
+
+    # 1️⃣ Decode refresh token
+    try:
+        data = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Refresh expired"}), 401
+    except Exception:
+        return jsonify({"error": "Invalid refresh token"}), 401
+
+    user_id = data.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Invalid payload"}), 401
+
+    db = get_db()
+
+    # 2️⃣ Check token exists in DB (revoked / logout protection)
+    row = db.execute(
+        "SELECT 1 FROM refresh_tokens WHERE token=? AND user_id=?",
+        (token, user_id)
+    ).fetchone()
+
+    if not row:
+        db.close()
+        return jsonify({"error": "Token revoked"}), 401
+
+    # 3️⃣ 🔥 FETCH USER FROM DB (IMPORTANT PART)
+    user = db.execute(
+        "SELECT id, username, role FROM users WHERE id=?",
+        (user_id,)
+    ).fetchone()
+    db.close()
+
+    if not user:
+        return jsonify({"error": "User not found"}), 401
+
+    user_dict = {
+        "id": user["id"],
+        "username": user["username"],
+        "role": user["role"]
+    }
+
+    # 4️⃣ Create new access token with FULL INFO
+    new_access_token = create_access_token(user_dict)
+
+    return jsonify({"access_token": new_access_token})
+
+@app.route("/settings/clear-orders", methods=["POST"])
+def clear_orders():
+    user = current_user()
+    if not user or user["role"] != "owner":
+        return jsonify(success=False, error="Forbidden"), 403
+
+    db = get_db()
+
+    # 🔥 OWNER ke stall ke orders clear karo
+
+    db.execute("""
+    DELETE FROM orders
+    WHERE stall_id IN (
+        SELECT s.id
+        FROM stalls s
+        WHERE s.owner_id = ?
+    )
+      AND status != 'pending'
+""", (user["id"],))
+
+    db.commit()
+    db.close()
+    return jsonify(success=True)
+
+
 @app.route("/logout")
 def logout():
-    user = current_user()
-    if not user:
-        return redirect("/login")
+    token = request.cookies.get("refresh_token")
 
-    sid = session.get("active_sid")
-    if sid and "sessions" in session:
-        session["sessions"].pop(sid, None)
-    session.pop("active_sid", None)
-    return redirect("/login")
+    if token:
+        db = get_db()
+        db.execute("DELETE FROM refresh_tokens WHERE token=?", (token,))
+        db.commit()
+        db.close()
+
+    resp = redirect("/login")
+    resp.delete_cookie("refresh_token")
+
+    session.clear()
+    return resp
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-

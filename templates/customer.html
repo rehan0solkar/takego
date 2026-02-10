@@ -10,10 +10,25 @@
 <header class="navbar">
     <h1 class="logo">Welcome</h1>
     <nav>
+        <div class="nav-right">
+  <div class="nav-right">
+  <div class="dropdown">
+    <img
+      src="{{ url_for('static', filename='icons/menu.svg') }}"
+      id="settingsBtn"
+      class="menu-icon"
+      alt="menu"
+    >
+    <div id="settingsMenu" class="dropdown-menu hidden">
         <a href="/order_history">Your Orders</a>
-        <a href="/logout">Logout</a>
+      <a href="/logout">Logout</a>
+    </div>
+  </div>
+</div>
+
     </nav>
 </header>
+
 <input id="search" onkeyup="filterProducts('search', '.product-card')" placeholder="Search Stall">
 
 <main class="container">
@@ -22,7 +37,7 @@
         {% for s in stalls %}
         <div class="product-card">
             <h3>{{ s[1] }}</h3>
-            <a class="btn product-btn" href="/stall/{{ s[0] }}">
+            <a class="btn primary-btn" href="/stall/{{ s[0] }}">
                 View Products
             </a>
         </div>
@@ -37,6 +52,20 @@
       ? "block" : "none";
   });
 }
+document.addEventListener("click", function (e) {
+  const btn = document.getElementById("settingsBtn");
+  const menu = document.getElementById("settingsMenu");
+
+  if (!btn || !menu) return;
+
+  if (btn.contains(e.target)) {
+    menu.classList.toggle("hidden");
+  } else if (!menu.contains(e.target)) {
+    menu.classList.add("hidden");
+  }
+});
+
 </script>
+
 </body>
 </html>

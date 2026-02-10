@@ -50,7 +50,6 @@ CREATE TABLE IF NOT EXISTS orders (
     ) DEFAULT 'pending',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     accepted_at DATETIME,
-    remaining DATETIME,
     prep_time INTEGER,
     FOREIGN KEY(customer_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY(stall_id) REFERENCES stalls(id) ON DELETE CASCADE,
@@ -69,6 +68,19 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE
 )
 """)
+# ================= REFRESH TOKENS =================
+db.execute("""
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    token TEXT NOT NULL UNIQUE,
+    sid TEXT NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+"""
+)
 
 db.commit()
 db.close()

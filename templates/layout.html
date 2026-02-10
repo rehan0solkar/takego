@@ -9,35 +9,65 @@
 <body>
  {% set user = current_user() %}
 
-
 <!-- 🔔 FLASH MESSAGE (CENTER) -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    <div id="flash-container">
-      {% for category, message in messages %}
-        <div class="flash-message {{ category }}">
-          {{ message }}
-        </div>
-      {% endfor %}
+    <div
+      id="flash-container"
+      data-messages='{{ messages | tojson | safe }}'>
     </div>
   {% endif %}
 {% endwith %}
+
 
 <!-- 🔹 MAIN CONTENT -->
 {% block content %}{% endblock %}
 
 <!-- 🧠 AUTO HIDE FLASH -->
 <script>
-setTimeout(() => {
+function showToast(message, category = "info") {
+  let toast = document.getElementById("toast");
+
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "toast";
+    toast.className = "toast hidden";
+    document.body.appendChild(toast);
+  }
+
+  toast.innerText = message;
+  toast.className = `toast ${category}`;
+  
+  // show
+  toast.classList.remove("hidden");
+
+  // auto hide
+  setTimeout(() => {
+    toast.classList.add("hidden");
+  }, 2500);
+}
+</script>
+<script>
+window.addEventListener("DOMContentLoaded", () => {
   const flash = document.getElementById("flash-container");
   if (!flash) return;
 
-    const messages = JSON.parse(flashDiv.dataset.messages);
+  let messages = [];
+  try {
+    messages = JSON.parse(flash.dataset.messages || "[]");
+  } catch (e) {
+    console.error("Flash parse error", e);
+    return;
+  }
 
-    messages.forEach(([category, message]) => {
-        showToast(message, category);
-    });
-}, 2500);
+  messages.forEach(([category, message], index) => {
+    setTimeout(() => {
+      showToast(message, category);
+    }, index * 300); // slight stagger
+  });
+});
 </script>
+
+
 </body>
 </html>

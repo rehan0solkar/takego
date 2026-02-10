@@ -10,13 +10,13 @@
 {% extends "layout.html" %}
 
 {% block title %}Stall Products{% endblock %}
-<div id="toast" class="toast hidden"></div>
-{% block content %}
 
+{% block content %}
+<div id="toast" class="toast hidden"></div>
 <header class="navbar">
     <h1 class="logo">Products</h1>
     <nav>
-        <a href="/customer" class="btn btn-outline-light me-2">Back</a>
+        <a href="/customer">Back</a>
     </nav>
 </header>
 <input id="search" onkeyup="filterProducts('search', '.product-card')" placeholder="Search products">
@@ -66,67 +66,67 @@
     {% endfor %}
 </div>
 
-{% if token %}
-<div class="token-popup">
-    Token no. {{ token }}
-</div>
-{% endif %}
 <script>
-console.log("🔥 generate-token JS LOADED");
+const toast = document.getElementById("toast");
 
-document.addEventListener("click", function (e) {
+function showToast(message) {
+  toast.innerText = message;
 
-    const btn = e.target.closest(".generate-token-btn");
-    if (!btn) return;
+  // reset state
+  toast.classList.remove("hidden");
 
-    e.preventDefault();
+  // force browser repaint
+  void toast.offsetWidth;
 
-    if (btn.disabled) return;   // ⛔ double click block
-    btn.disabled = true;
+  setTimeout(() => {
+    toast.classList.add("hidden");
+  }, 2500);
+}
 
-    const productId = btn.dataset.productId;
-    const qtyInputId = btn.dataset.qtyid;
-    const quantity = document.getElementById(qtyInputId)?.value || 1;
 
-    fetch("/generate_token", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: `product_id=${productId}&quantity=${quantity}`
-    })
-    .then(res => res.json())
-    .then(data => {
+document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("generate-token-btn")) {
 
-        if (!data.success) {
-            btn.disabled = false;
-            return;
-        }
+        e.target.disabled = true;
 
-        /* ===============================
-           🟣 PURPLE TOKEN POPUP AUTO REMOVE
-           =============================== */
-        const popup = document.querySelector(".token-popup");
-        if (popup) {
-            setTimeout(() => {
-                popup.remove();
-            }, 1500);   // ✅ 1.5 sec (as you asked)
-        }
+        const productId = e.target.dataset.productId;
+        const qtyInputId = e.target.dataset.qtyId;
+        const quantity = document.getElementById(qtyInputId).value;
 
-        /* ===============================
-           🔄 FAST RELOAD (NO LAG FEEL)
-           =============================== */
-        setTimeout(() => {
-            window.location.reload();
-        }, 1700);       // ✅ smooth, fast
+        fetch("/generate_token", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `product_id=${productId}&quantity=${quantity}`
+        })
+        .then(res => res.json())
+        .then(data => {
 
-    })
-    .catch(() => {
-        btn.disabled = false;
-    });
+            // 🔴 LOGIN REQUIRED CASE
+            if (data.error === "login_required") {
+                showToast("Please login first");
+                e.target.disabled = false;
+                return;
+            }
+
+            // ✅ SUCCESS
+            if (data.success) {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 800);
+            } 
+            // ❌ OTHER ERRORS
+            else {
+                e.target.disabled = false;
+            }
+        })
+        .catch(() => {
+            e.target.disabled = false;
+        });
+    }
 });
 </script>
-
 {% endblock %}
 
 </body>
