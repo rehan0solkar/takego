@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    role TEXT CHECK(role IN ('customer','owner')) NOT NULL
+    role TEXT CHECK(role IN ('customer','owner')) NOT NULL,
+    is_active INTEGER DEFAULT 1 
 )
 """)
 
@@ -19,7 +20,8 @@ CREATE TABLE IF NOT EXISTS stalls (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     owner_id INTEGER NOT NULL,
     stall_name TEXT NOT NULL,
-    FOREIGN KEY(owner_id) REFERENCES users(id) ON DELETE CASCADE
+    is_active INTEGER DEFAULT 1,
+    FOREIGN KEY(owner_id) REFERENCES users(id) ON DELETE RESTRICT
 )
 """)
 
@@ -33,11 +35,12 @@ CREATE TABLE IF NOT EXISTS products (
     prep_time INTEGER NOT NULL,
     availability INTEGER CHECK(availability >= 0) DEFAULT 1,
     image TEXT,
-    FOREIGN KEY(stall_id) REFERENCES stalls(id) ON DELETE CASCADE
+    is_active INTEGER DEFAULT 1,
+    FOREIGN KEY(stall_id) REFERENCES stalls(id) ON DELETE RESTRICT
 )
 """)
 
-# ================= ORDERS (APP.PY COMPATIBLE) =================
+# ================= ORDERS =================
 db.execute("""
 CREATE TABLE IF NOT EXISTS orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,8 +54,9 @@ CREATE TABLE IF NOT EXISTS orders (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     accepted_at DATETIME,
     prep_time INTEGER,
-    FOREIGN KEY(customer_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY(stall_id) REFERENCES stalls(id) ON DELETE CASCADE,
+    FOREIGN KEY(customer_id) REFERENCES users(id) ON DELETE RESTRICT,
+    FOREIGN KEY(stall_id) REFERENCES stalls(id) ON DELETE RESTRICT,
+
     UNIQUE(stall_id, token)
 )
 """)
@@ -65,9 +69,10 @@ CREATE TABLE IF NOT EXISTS order_items (
     product_id INTEGER NOT NULL,
     quantity INTEGER CHECK(quantity > 0) DEFAULT 1,
     FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE
+    FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE RESTRICT
 )
 """)
+
 # ================= REFRESH TOKENS =================
 db.execute("""
 CREATE TABLE IF NOT EXISTS refresh_tokens (
@@ -77,12 +82,11 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     sid TEXT NOT NULL,
     expires_at DATETIME NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-"""
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE RESTRICT
 )
+""")
 
 db.commit()
 db.close()
 
-print("DataBase Created")
+print("Database Created")

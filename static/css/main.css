@@ -130,6 +130,24 @@ body {
 .icon:hover {
   transform: scale(1.15);
 }
+
+@media (max-width: 768px) {
+
+  body {
+    font-size: 14px;
+  }
+
+  .container,
+  .page-container {
+    padding: 10px;
+  }
+
+  .center {
+    margin: 20px auto;
+    padding: 0 10px;
+  }
+}
+
 @media (max-width: 768px) {
     .footer-container {
         grid-template-columns: 1fr;
@@ -140,6 +158,23 @@ body {
         padding: 40px 30px 0;
     }
 }
+@media (max-width: 768px) {
+
+  .navbar {
+    flex-direction: row;
+    padding: 10px 14px;
+  }
+
+  .logo {
+    font-size: 18px;
+  }
+
+  .nav-links a {
+    margin-left: 10px;
+    font-size: 14px;
+  }
+}
+
 .footer-column a:hover {
     color: #ffffff;
 }

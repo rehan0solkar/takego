@@ -781,3 +781,83 @@ img {
 
 #confirmYes { background: #e74c3c; color: white; }
 #confirmNo  { background: #555; color: white; }
+@media (max-width: 768px) {
+
+  body {
+    font-size: 14px;
+  }
+
+  .container,
+  .page-container {
+    padding: 10px;
+  }
+
+  .center {
+    margin: 20px auto;
+    padding: 0 10px;
+  }
+}
+@media (max-width: 768px) {
+
+  .navbar {
+    flex-direction: row;
+    padding: 10px 14px;
+  }
+
+  .logo {
+    font-size: 18px;
+  }
+
+  .nav-links a {
+    margin-left: 10px;
+    font-size: 14px;
+  }
+}
+@media (max-width: 768px) {
+
+  .products-grid,
+  .product-grid {
+    grid-template-columns: 1fr;
+    padding: 8px;
+  }
+
+  .product-card {
+    max-width: 100%;
+  }
+
+  .product-card img {
+    height: 160px;
+  }
+}
+@media (max-width: 768px) {
+
+  .table,
+  .product-table,
+  .owner-orders-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    font-size: 14px;
+  }
+
+  .owner-orders-table th,
+  .owner-orders-table td {
+    padding: 12px 16px;
+  }
+}
+@media (max-width: 768px) {
+
+  .modal-box,
+  .swipe-box {
+    width: 92vw;
+    max-width: 360px;
+    padding: 18px;
+  }
+
+  .flash-message,
+  .toast {
+    font-size: 16px;
+    padding: 14px 20px;
+    min-width: auto;
+  }
+}

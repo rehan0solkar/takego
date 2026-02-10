@@ -639,13 +639,15 @@ def order_history():
         o.id,
         o.token,
         o.status,
-        SUM(oi.quantity * p.price) AS total_price,
+        COALESCE(SUM(oi.quantity * p.price), o.price) AS total_price,
         o.accepted_at,
-        GROUP_CONCAT(p.product_name || ' x' || oi.quantity) AS items,
+        GROUP_CONCAT(
+        COALESCE(p.product_name, '[Deleted Product]') || ' x' || oi.quantity
+        ) AS item,
         SUM(p.prep_time * oi.quantity) AS prep_time
     FROM orders o
-    JOIN order_items oi ON oi.order_id = o.id
-    JOIN products p ON p.id = oi.product_id
+    LEFT JOIN order_items oi ON oi.order_id = o.id
+    LEFT JOIN products p ON p.id = oi.product_id
     WHERE o.customer_id = ?
     GROUP BY
         o.id
@@ -658,7 +660,7 @@ ORDER BY
         WHEN 'rejected' THEN 3
     END,
     o.id DESC
-    """, (current_user()["id"],)).fetchall()
+    """, (user["id"],)).fetchall()
     orders_with_eta = []
 
 # 👉 accepted order ke hisaab se sort
@@ -668,11 +670,15 @@ ORDER BY
 
     for o in orders_with_eta:
         items = db.execute("""
-            SELECT p.product_name, oi.quantity, p.image
-            FROM order_items oi
-            JOIN products p ON oi.product_id = p.id
-            WHERE oi.order_id=?
+        SELECT 
+        COALESCE(p.product_name, '[Deleted Product]') AS product_name,
+        oi.quantity,
+        p.image
+        FROM order_items oi
+        LEFT JOIN products p ON oi.product_id = p.id
+        WHERE oi.order_id=?
         """, (o["id"],)).fetchall()
+
 
         order_items[o["id"]] = items
 
@@ -851,7 +857,7 @@ def clear_orders():
         FROM stalls s
         WHERE s.owner_id = ?
     )
-      AND status != 'pending'
+      AND status  NOT IN ('pending', 'accepted')
 """, (user["id"],))
 
     db.commit()
