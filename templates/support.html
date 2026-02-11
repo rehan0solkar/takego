@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & Support | TakeGo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/main.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
+{% extends "base.html" %}
+{% block content %}
+    <div class="ms-auto">
+        <a href="/login" class="btn btn-outline-light me-2">Login</a>
+    </div>
+</nav>
+
+<section class="legal-container">
+
+    <h1>Help & Support</h1>
+
+    <p>
+        Welcome to the official Help & Support page of <strong>TakeGo</strong>.
+        TakeGo is a token-based takeaway order management system developed as part of a Software Engineering academic project.
+        This section provides complete guidance for Customers, Stall Owners, and academic evaluators regarding the platform’s usage and functionality.
+    </p>
+
+    <hr>
+
+    <h2>Frequently Asked Questions (FAQs)</h2>
+
+    <h3>1. How do I register on TakeGo?</h3>
+    <p>
+        To use the system, you must first register yourself based on your role:
+    </p>
+    <ul>
+        <li><strong>Customer:</strong> Register as a Customer to browse stalls and generate order tokens.</li>
+        <li><strong>Stall Owner:</strong> Register as a Stall Owner to manage products and incoming orders.</li>
+    </ul>
+    <p>
+        After registration, log in using your credentials to access your respective dashboard.
+    </p>
+
+    <h3>2. How do Customers place an order?</h3>
+    <ul>
+        <li>Register and log in as a Customer.</li>
+        <li>Browse the list of available stalls.</li>
+        <li>Select products from a stall.</li>
+        <li>Choose the quantity (subject to availability).</li>
+        <li>Click on “Generate Token” to confirm the order.</li>
+    </ul>
+    <p>
+        Upon successful order placement, a unique token number is generated and displayed.
+        The system also reduces product availability automatically.
+    </p>
+
+    <h3>3. How does the Token System work?</h3>
+    <p>
+        Each confirmed order is assigned a sequential token number per stall.
+        The token system simulates queue management within a takeaway environment.
+        Tokens help demonstrate order tracking, preparation sequencing, and stall-level order management.
+    </p>
+
+    <h3>4. How is preparation time calculated?</h3>
+    <p>
+        The estimated preparation time is calculated dynamically based on:
+    </p>
+    <ul>
+        <li>The preparation time defined for each product.</li>
+        <li>The quantity ordered.</li>
+        <li>The queue logic implemented in the system.</li>
+    </ul>
+    <p>
+        This feature is implemented purely for academic demonstration of backend logic and database aggregation.
+    </p>
+
+    <h3>5. How can Customers track their orders?</h3>
+    <p>
+        Customers can access the <strong>"My Orders"</strong> section after logging in.
+        This section displays:
+    </p>
+    <ul>
+        <li>Token number</li>
+        <li>Order status (Pending, Accepted, Ready, Cancelled, Rejected)</li>
+        <li>Total price</li>
+        <li>Order items and quantities</li>
+        <li>Estimated preparation time</li>
+    </ul>
+
+    <h3>6. How do Stall Owners manage orders?</h3>
+    <ul>
+        <li>Register and log in as a Stall Owner.</li>
+        <li>Access the Owner Panel dashboard.</li>
+        <li>Add, edit, or delete products.</li>
+        <li>View incoming customer orders.</li>
+        <li>Update order status to Accepted, Ready, Cancelled, or Rejected.</li>
+    </ul>
+    <p>
+        Stall Owners can also manage product availability, which directly impacts token generation.
+    </p>
+
+    <h3>7. What happens if a product is deleted?</h3>
+    <p>
+        If a product is removed by a Stall Owner, previously generated orders remain visible in the system.
+        Deleted products are displayed as “[Deleted Product]” in order history for data consistency and audit demonstration.
+    </p>
+
+    <h3>8. Does TakeGo support real payments?</h3>
+    <p>
+        No. TakeGo does not process real financial transactions.
+        All pricing, order totals, and token generation features are simulated for academic evaluation purposes only.
+    </p>
+
+    <hr>
+
+    <h2>Technical Information</h2>
+    <ul>
+        <li>Developed using Flask (Python)</li>
+        <li>SQLite Database integration</li>
+        <li>Role-based authentication (Customer & Stall Owner)</li>
+        <li>Password hashing for security demonstration</li>
+        <li>Token-based order queue logic</li>
+        <li>AJAX-based token generation without full page reload</li>
+        <li>Flash message system for user feedback</li>
+    </ul>
+
+    <hr>
+
+    <h2>Common Issues & Troubleshooting</h2>
+
+    <h3>Login Required Error</h3>
+    <p>
+        If you attempt to generate a token without logging in, the system will prevent order creation and display a login notification.
+    </p>
+
+    <h3>Product Out of Stock</h3>
+    <p>
+        Token generation will be blocked if product availability is insufficient.
+    </p>
+
+    <h3>Session Expiry</h3>
+    <p>
+        If your session expires, you will be required to log in again to continue using the platform.
+    </p>
+
+    <hr>
+
+    <h2>Academic Disclaimer</h2>
+    <p>
+        TakeGo is developed strictly as an academic Software Engineering project.
+        It is not a commercial product and is not intended for real-world deployment.
+        All data, tokens, and order flows exist solely for educational and demonstration purposes.
+    </p>
+
+    <hr>
+
+    <h2>Contact for Academic Support</h2>
+    <p>
+        For project-related queries, evaluation clarification, or academic support:
+        <br><strong>Rehan Solkar</strong><br>
+        Email: rhnslkr@gmail.com<br>
+        Software Engineering Project – TakeGo
+    </p>
+
+</section>
+{% endblock %}
+</body>
+</html>

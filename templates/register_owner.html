@@ -13,12 +13,10 @@
         <h2 class="text-center mb-4">Owner Register</h2>
         <div id="errorBox" class="alert alert-danger d-none"></div>
         <form id="registerForm" enctype="multipart/form-data" class="form inline">
-            <input class="form-control mb-3" type="text" name="username" placeholder="Username" required>
+            <input class="form-control mb-3" type="text" name="username"  id="username" placeholder="Username" required pattern="^\S+$">
             <input class="form-control mb-3" type="password" name="password" placeholder="Password (min 8 chars)" required>
             <input class="form-control mb-3" type="text" name="stall_name" placeholder="Stall Name" required>
-
             <hr>
-
             <h4>Initial Product</h4>
             <input class="form-control mb-3" type="text" name="product_name" placeholder="Product Name" required>
             <input class="form-control mb-3" type="number" name="price" placeholder="Price" min="1" required>
@@ -86,6 +84,9 @@ document.getElementById("registerForm")
     }
 
     window.location.href = data.redirect;
+});
+document.getElementById("username").addEventListener("blur", function() {
+    this.value = this.value.trim();
 });
 </script>
 </body>

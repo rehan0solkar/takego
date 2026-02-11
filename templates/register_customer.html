@@ -14,9 +14,8 @@
         <h2 class="text-center mb-4">Customer Register</h2>
 
         <div id="errorBox" class="alert alert-danger d-none"></div>
-
         <form id="registerForm">
-            <input class="form-control mb-3" name="username" placeholder="Username" required>
+            <input class="form-control mb-3" name="username" id="username" placeholder="Username" required pattern="^\S+$">
             <input class="form-control mb-3" type="password" name="password" placeholder="Password" required>
             <input class="form-control mb-3" type="password" name="confirm" placeholder="Confirm Password" required>
 
@@ -51,7 +50,9 @@ document.getElementById("registerForm")
 
     window.location.href = data.redirect;
 });
+document.getElementById("username").addEventListener("blur", function() {
+    this.value = this.value.trim();
+});
 </script>
-
 </body>
 </html>

@@ -47,6 +47,7 @@ def current_user():
         elif "user_id" in user:
             user["user"] = user["user_id"]
     return user
+
 #Eta timer
 def apply_eta_queue(orders):
     now = datetime.now(timezone.utc)
@@ -119,6 +120,18 @@ def get_db():
 def home():
     return render_template("home.html")
 
+@app.route("/privacy")
+def privacy():
+    return render_template("privacy.html")
+
+@app.route("/terms")
+def terms():
+    return render_template("terms.html")
+
+@app.route("/help")
+def support():
+    return render_template("support.html")
+
 @app.context_processor
 def inject_current_user():
     return dict(current_user=current_user)
@@ -129,7 +142,7 @@ def login():
     if request.method == "GET":
         return render_template("login.html")
 
-    username = request.form.get("username")
+    username = request.form["username"].strip().lower()
     password = request.form.get("password")
 
     if not username or not password:
@@ -137,7 +150,7 @@ def login():
 
     db = get_db()
     user = db.execute(
-        "SELECT * FROM users WHERE username=?",
+        "SELECT * FROM users WHERE TRIM(username) = ?",
         (username,)
     ).fetchone()
     db.close()
@@ -182,7 +195,7 @@ def register_owner():
     username = request.form.get("username")
     password = hash_pw(request.form.get("password"))
     stall_name = request.form.get("stall_name")
-    product_name = request.form.get("product_name")
+    product_name = request.form.get("product_name", "").strip()
 
     try:
         price = int(request.form.get("price", 0))
@@ -283,9 +296,6 @@ def register_customer():
 # ================= CUSTOMER =================
 @app.route("/customer")
 def customer():
-    user = current_user()
-    if not user or user["role"] != "customer":
-        return redirect("/login")
     db = get_db()
     stalls = db.execute("""
         SELECT id, stall_name
@@ -297,9 +307,6 @@ def customer():
 # STALL PRODUCTS
 @app.route("/stall/<int:stall_id>")
 def stall_products(stall_id):
-    user = current_user()
-    if not user or user["role"] != "customer":
-        return redirect("/login")
     db = get_db()
     products = db.execute("""
         SELECT id, product_name, price, prep_time, availability, image
@@ -342,12 +349,15 @@ def add_product():
     if not user or user["role"] != "owner":
         return redirect("/login")
 
-    name = request.form.get("product_name")
+    name = request.form.get("product_name", "").strip()
     price = int(request.form.get("price", 0))
     prep = int(request.form.get("prep_time", 0))
     avail = int(request.form.get("availability", 0))
 
     if not name or price <= 0 or prep <= 0 or avail <= 0:
+        return redirect("/owner")
+    if not name:
+        flash("Product name is required.")
         return redirect("/owner")
 
     image_name = None
@@ -384,9 +394,7 @@ def add_product():
 def generate_token():
     user = current_user()
     if not user or user["role"] != "customer":
-        flash("Please login first", "error")
-        return jsonify(success=False)
-
+        return jsonify({"error": "login_required"})
 
     product_id = request.form.get("product_id")
     quantity = int(request.form.get("quantity", 1))
@@ -403,13 +411,11 @@ def generate_token():
 
         if not product:
             db.rollback()
-            flash("Product not found", "error")
-            return jsonify(success=False)
+            return jsonify({"error": "product_not_found"})
 
         if product["availability"] < quantity:
             db.rollback()
-            flash("Not enough quantity available", "error")
-            return jsonify(success=False)
+            return jsonify({"error": "not_enough_quantity"})
 
         token = db.execute("""
             SELECT COALESCE(MAX(token),0)+1
@@ -472,7 +478,7 @@ LEFT JOIN order_items oi ON oi.order_id = o.id
 LEFT JOIN products p ON p.id = oi.product_id
     JOIN stalls s ON o.stall_id = s.id
     WHERE s.owner_id = ?
-    AND o.is_deleted = 0;
+    AND o.is_deleted = 0
     AND o.status IN ('pending','accepted','rejected','ready','cancelled')
 GROUP BY
         o.id
@@ -528,7 +534,7 @@ LEFT JOIN order_items oi ON oi.order_id = o.id
 LEFT JOIN products p ON p.id = oi.product_id
     JOIN stalls s ON o.stall_id = s.id
     WHERE s.owner_id = ?
-    AND o.is_deleted = 0;
+    AND o.is_deleted = 0
     AND o.status IN ('pending','accepted','rejected','ready','cancelled')
 GROUP BY
         o.id
@@ -651,7 +657,6 @@ def order_history():
     LEFT JOIN order_items oi ON oi.order_id = o.id
     LEFT JOIN products p ON p.id = oi.product_id
     WHERE o.customer_id = ?
-    AND o.is_deleted = 1;
     GROUP BY
         o.id
 ORDER BY
@@ -716,10 +721,13 @@ def update_product(pid):
         return render_template("edit_product.html", p=product)
 
     # POST
-    product_name = request.form.get("product_name")
+    product_name = request.form.get("product_name", "").strip()
     price = int(request.form.get("price", 0))
     prep_time = int(request.form.get("prep_time", 0))
     availability = int(request.form.get("availability", 0))
+    if not product_name:
+        flash("Product name is required.")
+        return redirect("/owner")
 
     db.execute("""
         UPDATE products
@@ -860,7 +868,7 @@ def clear_orders():
         FROM stalls s
         WHERE s.owner_id = ?
     )
-    AND status  NOT IN ('pending', 'accepted')
+    AND status NOT IN ('pending', 'accepted')
     AND is_deleted = 0
 """, (user["id"],))
 

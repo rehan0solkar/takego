@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service | TakeGo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/main.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
+{% extends "base.html" %}
+{% block content %}
+    <div class="ms-auto">
+        <a href="/login" class="btn btn-outline-light me-2">Login</a>
+    </div>
+</nav>
+
+<section class="legal-container">
+
+    <h1>Terms of Service</h1>
+    <p class="last-updated">Last Updated: February 2026</p>
+
+    <p>
+        These Terms of Service ("Terms") govern your access to and use of 
+        <strong>TakeGo</strong>, a token-based takeaway order management system 
+        developed as part of an academic Software Engineering project.
+        By accessing or using this platform, you agree to comply with these Terms.
+    </p>
+
+    <h2>1. Nature of the Platform</h2>
+    <p>
+        TakeGo is developed strictly for academic, demonstration, and evaluation purposes.
+        It is not a commercial product and is not intended for real-world business operations.
+        No real financial transactions are processed through this system.
+    </p>
+
+    <h2>2. User Roles and Responsibilities</h2>
+    <p>The platform supports two primary roles:</p>
+    <ul>
+        <li>
+            <strong>Customers:</strong> Users who register, browse stalls,
+            generate order tokens, and track order status.
+        </li>
+        <li>
+            <strong>Stall Owners:</strong> Users who manage products,
+            update availability, accept/reject orders, and mark orders as ready.
+        </li>
+    </ul>
+
+    <p>
+        Users are responsible for using their assigned role appropriately.
+        Unauthorized access or misuse of role-based functionality is prohibited.
+    </p>
+
+    <h2>3. Account Registration and Security</h2>
+    <ul>
+        <li>Users must register before accessing system features.</li>
+        <li>Usernames must follow platform validation rules.</li>
+        <li>Passwords are stored using hashing techniques for security demonstration.</li>
+        <li>Users are advised not to use real-world sensitive credentials.</li>
+    </ul>
+
+    <p>
+        While security mechanisms are implemented for educational purposes,
+        this system should not be treated as a production-grade secure application.
+    </p>
+
+    <h2>4. Token-Based Order System</h2>
+    <p>
+        When a customer places an order, the system generates a unique token number.
+        Tokens are generated sequentially per stall to simulate queue management logic.
+    </p>
+
+    <p>
+        The token mechanism is intended to demonstrate:
+    </p>
+    <ul>
+        <li>Database transactions</li>
+        <li>Concurrent order handling logic</li>
+        <li>Queue simulation per stall</li>
+        <li>Status updates (Pending, Accepted, Ready, Rejected, Cancelled)</li>
+    </ul>
+
+    <h2>5. Orders and Availability</h2>
+    <ul>
+        <li>Orders can only be placed if product availability is sufficient.</li>
+        <li>Availability is automatically reduced upon successful order placement.</li>
+        <li>Stall owners may update product availability at any time.</li>
+        <li>Order records may be soft-deleted for system demonstration purposes.</li>
+    </ul>
+
+    <p>
+        Order preparation time displayed is calculated based on product prep-time logic
+        and is intended only for simulation.
+    </p>
+
+    <h2>6. No Payment Processing</h2>
+    <p>
+        TakeGo does not integrate any real payment gateway.
+        All pricing displayed is for academic demonstration only.
+        No real financial processing occurs within this platform.
+    </p>
+
+    <h2>7. Data Handling and Storage</h2>
+    <p>
+        The system uses a SQLite database for demonstration of relational data management.
+        Data stored may include:
+    </p>
+    <ul>
+        <li>Username</li>
+        <li>User role</li>
+        <li>Product information</li>
+        <li>Order records</li>
+        <li>Generated tokens</li>
+    </ul>
+
+    <p>
+        Data may be reset, modified, or cleared at any time during development,
+        testing, or academic evaluation.
+    </p>
+
+    <h2>8. System Availability</h2>
+    <p>
+        As this is an academic project, uptime and availability are not guaranteed.
+        The system may be temporarily unavailable during development, debugging,
+        deployment, or testing phases.
+    </p>
+
+    <h2>9. Limitations of Liability</h2>
+    <p>
+        The developers of TakeGo are not liable for:
+    </p>
+    <ul>
+        <li>Data loss</li>
+        <li>System interruptions</li>
+        <li>Incorrect token generation during testing</li>
+        <li>Misuse of the platform</li>
+    </ul>
+
+    <p>
+        Use of this platform is entirely at the user's discretion for academic demonstration purposes.
+    </p>
+
+    <h2>10. Modifications to the System</h2>
+    <p>
+        The system architecture, database structure, or features may be modified
+        at any time as part of development or academic evaluation requirements.
+    </p>
+
+    <h2>11. Termination of Access</h2>
+    <p>
+        Access to the platform may be restricted or terminated if misuse,
+        role abuse, or system manipulation is detected.
+    </p>
+
+    <h2>12. Contact for Academic Queries</h2>
+    <p>
+        For academic questions, evaluation clarification, or project-related discussion:
+        <br><br>
+        <strong>Rehan Solkar</strong><br>
+        Email: rhnslkr@gmail.com<br>
+        Software Engineering Project – TakeGo
+    </p>
+
+</section>
+
+{% endblock %}
+</body>
+</html>
