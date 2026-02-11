@@ -54,9 +54,9 @@ CREATE TABLE IF NOT EXISTS orders (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     accepted_at DATETIME,
     prep_time INTEGER,
+    is_deleted INTEGER DEFAULT 0,
     FOREIGN KEY(customer_id) REFERENCES users(id) ON DELETE RESTRICT,
     FOREIGN KEY(stall_id) REFERENCES stalls(id) ON DELETE RESTRICT,
-
     UNIQUE(stall_id, token)
 )
 """)

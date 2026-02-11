@@ -472,6 +472,7 @@ LEFT JOIN order_items oi ON oi.order_id = o.id
 LEFT JOIN products p ON p.id = oi.product_id
     JOIN stalls s ON o.stall_id = s.id
     WHERE s.owner_id = ?
+    AND o.is_deleted = 0;
     AND o.status IN ('pending','accepted','rejected','ready','cancelled')
 GROUP BY
         o.id
@@ -527,6 +528,7 @@ LEFT JOIN order_items oi ON oi.order_id = o.id
 LEFT JOIN products p ON p.id = oi.product_id
     JOIN stalls s ON o.stall_id = s.id
     WHERE s.owner_id = ?
+    AND o.is_deleted = 0;
     AND o.status IN ('pending','accepted','rejected','ready','cancelled')
 GROUP BY
         o.id
@@ -649,6 +651,7 @@ def order_history():
     LEFT JOIN order_items oi ON oi.order_id = o.id
     LEFT JOIN products p ON p.id = oi.product_id
     WHERE o.customer_id = ?
+    AND o.is_deleted = 1;
     GROUP BY
         o.id
 ORDER BY
@@ -851,13 +854,14 @@ def clear_orders():
     # 🔥 OWNER ke stall ke orders clear karo
 
     db.execute("""
-    DELETE FROM orders
+    UPDATE  orders SET is_deleted = 1
     WHERE stall_id IN (
         SELECT s.id
         FROM stalls s
         WHERE s.owner_id = ?
     )
-      AND status  NOT IN ('pending', 'accepted')
+    AND status  NOT IN ('pending', 'accepted')
+    AND is_deleted = 0
 """, (user["id"],))
 
     db.commit()
