@@ -134,6 +134,15 @@ body {
 .icon:hover {
   transform: scale(1.15);
 }
+.navbar {
+    position: fixed;
+    top: 0;
+    z-index: 1000;
+    background: #1e2a38;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    left: 0;
+    width: 100%;
+}
 @media (max-width: 768px) {
     .navbar {
         flex-direction: column;
@@ -214,16 +223,6 @@ body {
     .site-footer {
         padding: 40px 30px 0;
     }
-}
-
-.navbar {
-    position: fixed;
-    top: 0;
-    z-index: 1000;
-    background: #1e2a38;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-    left: 0;
-    width: 100%;
 }
 
 .logo {
