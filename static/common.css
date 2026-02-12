@@ -839,17 +839,19 @@ img {
   }
 }
 @media (max-width: 768px) {
-
-  .navbar {
-    flex-direction: row;
-    padding: 10px 14px;
-  }
+   .navbar {
+       flex-direction: row;   /* column hata diya */
+       align-items: center;   /* center rakha */
+       padding: 10px 15px;
+   }
 
   .logo {
     font-size: 18px;
   }
 
   .nav-links a {
+    flex: unset;   /* flex:1 hata diya */
+       text-align: center;
     margin-left: 10px;
     font-size: 14px;
   }

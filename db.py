@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     role TEXT CHECK(role IN ('customer','owner')) NOT NULL,
+    terms_accepted BOOLEAN DEFAULT 0,
     is_active INTEGER DEFAULT 1 
 )
 """)

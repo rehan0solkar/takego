@@ -113,4 +113,51 @@ body {
     padding: 10px;
   }
 }
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #0000cf, #0099ffb4, #5804ac);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
 
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 900px;
+    max-height: 85vh;
+    overflow: hidden;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.terms-box {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.tabs button {
+    padding: 6px 12px;
+    border: none;
+    background: #eee;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.active-tab {
+    background: #007bff;
+    color: white;
+}

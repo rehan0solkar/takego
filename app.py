@@ -124,13 +124,39 @@ def home():
 def privacy():
     return render_template("privacy.html")
 
+@app.route("/privacy_content")
+def privacy_content():
+    return render_template("privacy_content.html")
+
 @app.route("/terms")
 def terms():
     return render_template("terms.html")
 
+@app.route("/terms_content")
+def terms_content():
+    return render_template("terms_content.html")
+
 @app.route("/help")
 def support():
     return render_template("support.html")
+
+@app.route("/accept_terms", methods=["POST"])
+def accept_terms():
+    user = current_user()
+    if not user:
+        return jsonify(success=False)
+
+    db = get_db()
+    db.execute(
+        "UPDATE users SET terms_accepted = 1 WHERE id=?",
+        (user["id"],)
+    )
+    db.commit()
+    db.close()
+
+    redirect_url = "/customer" if user["role"] == "customer" else "/owner"
+
+    return jsonify(success=True, redirect=redirect_url)
 
 @app.context_processor
 def inject_current_user():
@@ -159,7 +185,7 @@ def login():
         return jsonify(success=False, error="Invalid Username")
     if not check_pw(password, user["password"]):
         return jsonify(success=False, error="Password Not Matched")
-
+    
     # ✅ session set
     sid = str(uuid.uuid4())
     session["active_sid"] = sid
@@ -171,6 +197,8 @@ def login():
         "role": user["role"]
     }
     access_token = create_access_token(user)
+    if user["terms_accepted"] == 0:
+        return jsonify(success=True, show_terms=True, access_token=access_token)
     refresh_token, sid = create_refresh_token(user["id"])
     db = get_db()
     db.execute("""
@@ -192,7 +220,7 @@ def register_owner():
     if request.method == "GET":
         return render_template("register_owner.html")
 
-    username = request.form.get("username")
+    username = request.form["username"].strip().lower()
     password = hash_pw(request.form.get("password"))
     stall_name = request.form.get("stall_name")
     product_name = request.form.get("product_name", "").strip()
@@ -219,7 +247,7 @@ def register_owner():
 
     db = get_db()
     try:
-        if db.execute("SELECT id FROM users WHERE username=?", (username,)).fetchone():
+        if db.execute("SELECT id FROM users WHERE TRIM(username)=?", (username,)).fetchone():
             return render_template("register_owner.html", error="Username exists")
         db.execute(
             "INSERT INTO users (username, password, role) VALUES (?, ?, 'owner')",
@@ -227,7 +255,7 @@ def register_owner():
         )
 
         owner_id = db.execute(
-            "SELECT id FROM users WHERE username=?", (username,)
+            "SELECT id FROM users WHERE TRIM(username)=?", (username,)
         ).fetchone()[0]
         db.execute(
             "INSERT INTO stalls (stall_name, owner_id) VALUES (?, ?)",
@@ -260,7 +288,7 @@ def register_customer():
     if request.method == "GET":
         return render_template("register_customer.html")
 
-    username = request.form.get("username")
+    username = request.form["username"].strip().lower()
     raw_password = request.form.get("password")
     confirm = request.form.get("confirm")
     if not username:
@@ -277,7 +305,7 @@ def register_customer():
     db = get_db()
     try:
         if db.execute(
-        "SELECT id FROM users WHERE username=?",
+        "SELECT id FROM users WHERE TRIM(username)=?",
         (username,)
         ).fetchone():
             return jsonify(success=False, error="Username exists")

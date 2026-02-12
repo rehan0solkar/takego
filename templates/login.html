@@ -17,41 +17,156 @@
 
         <form id="loginForm">
             <input class="form-control mb-3" name="username" placeholder="Username" required>
-            <input class="form-control mb-3" type="password" name="password" placeholder="Password" required>
-
+            <input class="form-control mb-3" type="password" name="password" placeholder="Password" required>           
             <button type="submit" class="btn btn-primary w-100">Login</button>
         </form>
 
         <p class="text-center mt-3">
-            No account? <a href="/register_customer">Customer</a> OR <a href="/register_owner">Owner</a>
+            No account? <a href="/register_customer" class="text-primary">Customer</a> OR <a href="/register_owner" class="text-primary">Owner</a>
         </p>
     </div>
 </div>
+<div id="termsModal" class="modal">
+  <div class="modal-content">
+
+    <h2>Terms & Privacy Policy</h2>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button type="button" id="termsTab" class="active-tab">Terms</button>
+        <button type="button" id="privacyTab">Privacy</button>
+    </div>
+
+    <!-- Dynamic Content -->
+    <div class="terms-box" id="termsContent">
+        Loading...
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+        <label>
+            <input type="checkbox" id="agreeCheck">
+            I agree to the Terms & Privacy Policy
+        </label>
+
+        <button id="acceptBtn" disabled>
+            Accept & Continue
+        </button>
+    </div>
+
+  </div>
+</div> 
 <script>
+
+// ================= LOGIN =================
 document.querySelector("#loginForm").addEventListener("submit", async e => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const formData = new FormData(e.target);
+    const formData = new FormData(e.target);
 
-  const res = await fetch("/login", {
-  method: "POST",
-  body: formData,
-  credentials: "same-origin"
+    const res = await fetch("/login", {
+        method: "POST",
+        body: formData,
+        credentials: "same-origin"
+    });
+
+    const data = await res.json();
+
+    const errorBox = document.getElementById("errorBox");
+    errorBox.classList.add("d-none");
+
+    if (!data.success) {
+        errorBox.innerText = data.error;
+        errorBox.classList.remove("d-none");
+        return;
+    }
+
+    window.ACCESS_TOKEN = data.access_token;
+
+    // 🔥 If Terms Required
+    if (data.show_terms) {
+        openTermsModal();
+        return;
+    }
+
+    // Normal login
+    window.location.href = data.redirect;
 });
-  const data = await res.json();
 
-  const errorBox = document.getElementById("errorBox");
-  errorBox.classList.add("d-none");
-  if (!data.success) {
-    errorBox.innerText = data.error;
-    errorBox.classList.remove("d-none");
-    return;
+// ================= OPEN MODAL =================
+async function openTermsModal() {
+    document.getElementById("termsModal").style.display = "flex";
+    loadTerms(); // default load terms
 }
 
-  // 🔐 access token JS memory me
-  window.ACCESS_TOKEN = data.access_token;
 
-  window.location.href = data.redirect;
+// ================= LOAD TERMS =================
+async function loadTerms() {
+    setActiveTab("terms");
+
+    const res = await fetch("/terms_content", {
+        credentials: "same-origin"
+    });
+
+    const html = await res.text();
+    document.getElementById("termsContent").innerHTML = html;
+}
+
+
+// ================= LOAD PRIVACY =================
+async function loadPrivacy() {
+    setActiveTab("privacy");
+
+    const res = await fetch("/privacy_content", {
+        credentials: "same-origin"
+    });
+
+    const html = await res.text();
+    document.getElementById("termsContent").innerHTML = html;
+}
+
+
+// ================= TAB UI =================
+function setActiveTab(tab) {
+    document.getElementById("termsTab").classList.remove("active-tab");
+    document.getElementById("privacyTab").classList.remove("active-tab");
+
+    if (tab === "terms") {
+        document.getElementById("termsTab").classList.add("active-tab");
+    } else {
+        document.getElementById("privacyTab").classList.add("active-tab");
+    }
+}
+
+
+// ================= TAB BUTTON EVENTS =================
+document.getElementById("termsTab").addEventListener("click", loadTerms);
+document.getElementById("privacyTab").addEventListener("click", loadPrivacy);
+
+
+// ================= CHECKBOX CONTROL =================
+const agreeCheck = document.getElementById("agreeCheck");
+const acceptBtn = document.getElementById("acceptBtn");
+
+agreeCheck.addEventListener("change", () => {
+    acceptBtn.disabled = !agreeCheck.checked;
+});
+
+
+// ================= ACCEPT TERMS =================
+acceptBtn.addEventListener("click", async () => {
+
+    const res = await fetch("/accept_terms", {
+        method: "POST",
+        credentials: "same-origin"
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        document.getElementById("termsModal").style.display = "none";
+        window.location.href = data.redirect;
+    }
 });
 
 </script>
