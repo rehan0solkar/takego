@@ -10,6 +10,7 @@ a {
 body {
     background-color: #f4f6f9;
     font-family: 'Segoe UI', sans-serif;
+    padding-top: 70px;
 }
 
 .hero {
@@ -149,12 +150,18 @@ body {
        align-items: center;   /* center rakha */
        padding: 10px 15px;
    }
-
    .navbar nav {
        width: auto;   /* 100% hata diya */
        margin-top: 0; /* 8px hata diya */
        gap: 8px;
    }
+
+    .navbar .nav-right {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
 
    .navbar nav a {
        flex: unset;   /* flex:1 hata diya */
