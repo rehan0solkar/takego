@@ -21,9 +21,14 @@ body {
     background: #f5f6fa;
     color: #333;
 }
-
 .navbar {
-    background: #1e272e;
+    position: fixed;
+    top: 0;
+    z-index: 1000;
+    background: #1e2a38;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    left: 0;
+    width: 100%;
     color: #fff;
     padding: 12px 20px;
     display: flex;
