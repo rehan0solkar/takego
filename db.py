@@ -90,4 +90,4 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
 db.commit()
 db.close()
 
-print("Database Created")
+print("Database.db is created")
