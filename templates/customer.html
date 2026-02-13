@@ -8,39 +8,55 @@
 </head>
 <body>
 <header class="navbar">
-    <h1 class="logo">Welcome</h1>
-    <nav>
-        <div class="nav-right">
-  <div class="nav-right">
-  <div class="dropdown">
-    <img
-      src="{{ url_for('static', filename='icons/menu.svg') }}"
-      id="settingsBtn"
-      class="menu-icon"
-      alt="menu"
-    >
-    <div id="settingsMenu" class="dropdown-menu hidden">
-        <a href="/order_history">Your Orders</a>
-      <a href="/logout">Logout</a>
-    </div>
-  </div>
-</div>
 
-    </nav>
+  <h1 class="logo">
+    {% if current_user %}
+        Welcome {{ current_user.username }}
+    {% endif %}
+  </h1>
+
+  <nav>
+
+    <div class="nav-right">
+
+      {% if current_user %}
+        <div class="dropdown">
+          <img
+            src="{{ url_for('static', filename='icons/menu.svg') }}"
+            id="settingsBtn"
+            class="menu-icon"
+            alt="menu"
+          >
+          <div id="settingsMenu" class="dropdown-menu hidden">
+            <a href="/order_history">Your Orders</a>
+            <a href="/logout">Logout</a>
+          </div>
+        </div>
+      {% else %}
+        <a href="/login" class="login-btn"><span>Login</span></a>
+      {% endif %}
+    </div>
+  </nav>
+
 </header>
+
 
 <input id="search" onkeyup="filterProducts('search', '.product-card')" placeholder="Search Stall">
 
 <main class="container">
     <h2>Available Stalls</h2>
     <div class="product-grid">
-        {% for s in stalls %}
-        <div class="product-card">
-            <h3>{{ s[1] }}</h3>
-            <a class="btn primary-btn" href="/stall/{{ s[0] }}">
-                View Products
-            </a>
-        </div>
+        {% for s in stalls %}<div class="product-card">
+    <h3>{{ s[1] }}</h3>
+
+    <div class="token-line">
+        Token: <span id="token-{{s[0]}}" data-stall="{{s[0]}}"></span>
+    </div>
+
+    <a class="btn primary-btn" href="/stall/{{ s[0] }}">
+        View Products
+    </a>
+</div>
         {% endfor %}
         </div>
 </main>
@@ -52,6 +68,27 @@
       ? "block" : "none";
   });
 }
+function loadToken(stallId){
+ fetch(`/current_token?stall_id=${stallId}`)
+ .then(res=>res.json())
+ .then(data=>{
+    document.getElementById(`token-${stallId}`).innerText = data.token;
+ });
+}
+
+// first load
+window.addEventListener("DOMContentLoaded", () => {
+ document.querySelectorAll("[data-stall]").forEach(el=>{
+    loadToken(el.dataset.stall);
+ });
+});
+
+// auto refresh every 10 sec
+setInterval(()=>{
+ document.querySelectorAll("[data-stall]").forEach(el=>{
+    loadToken(el.dataset.stall);
+ });
+},10000);
 document.addEventListener("click", function (e) {
   const btn = document.getElementById("settingsBtn");
   const menu = document.getElementById("settingsMenu");
@@ -64,7 +101,6 @@ document.addEventListener("click", function (e) {
     menu.classList.add("hidden");
   }
 });
-
 </script>
 
 </body>

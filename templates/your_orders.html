@@ -64,17 +64,43 @@
           <b>{{ item.product_name }}</b><br>
           Qty: {{ item.quantity }}
         </div>
-        {% if o.status in ["pending", "accepted"] %}
-  <form action="/cancel_order/{{ o.id }}" method="post" style="display:inline;">
-    <button class="cancel-btn">Cancel</button>
+        {% if o.status in ["pending"] %}
+  <form action="/cancel_order/{{ o.id }}" method="post" onclick="event.stopPropagation();" style="display:inline;">
+    <button type="submit" class="cancel-btn" onclick="event.stopPropagation();">Cancel</button>
   </form>
 {% endif %}
 
       </div>
     {% endfor %}
   </div>
-
 </div>
 {% endfor %}
+<div class="modal fade" id="orderDetailsModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Track Order</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="timelineBody"></div>
+      </div>
+    </div>
+  </div>
+<div id="loaderTemplate" style="display:none">
+        <div class="ticket-loader">
+    <div class="machine">
+        <div class="slot"></div>
+        <div class="paper">
+            <div class="line short"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="token">#----</div>
+        </div>
+    </div>
+    <p>Fetching order status...</p>
+</div>
+</div>
+
 
 {% endblock %}

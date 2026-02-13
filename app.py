@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, session, redirect, jsonify, f
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta, timezone
-import sqlite3, jwt, os, uuid
+import sqlite3, jwt, os, uuid, math
 
 def hash_pw(pw):
     return generate_password_hash(pw)
@@ -28,6 +28,31 @@ def create_refresh_token(user_id):
     token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
     return token, sid
 
+def update_ready_orders():
+
+    db = get_db()
+
+    orders = db.execute("""
+        SELECT * FROM orders
+        WHERE status = 'accepted'
+    """).fetchall()
+
+    now = datetime.now()
+
+    for o in orders:
+        if not o["accepted_at"] or not o["prep_time"]:
+            continue
+
+        ready_time = datetime.fromisoformat(o["accepted_at"]) + timedelta(minutes=o["prep_time"])
+
+        if now >= ready_time:
+            db.execute(
+                "UPDATE orders SET status = 'ready' WHERE id = ?",
+                (o["id"],)
+            )
+
+    db.commit()
+    
 def current_user():
     sid = session.get("active_sid")
     if not sid:
@@ -65,16 +90,12 @@ def apply_eta_queue(orders):
     for o in accepted:
         o = dict(o)
         prep = int(o["prep_time"])
+        
         accepted_at = datetime.fromisoformat(o["accepted_at"])
 
         cumulative_minutes += prep
         ready_at = accepted_at + timedelta(minutes=cumulative_minutes)
-
-        remaining = max(
-            0,
-            int((ready_at - now).total_seconds() // 60)
-        )
-
+        remaining = max(0,math.ceil((ready_at - now).total_seconds() / 60))
         o["ready_at"] = ready_at.isoformat()
         o["remaining"] = remaining
         final.append(o)
@@ -160,7 +181,21 @@ def accept_terms():
 
 @app.context_processor
 def inject_current_user():
-    return dict(current_user=current_user)
+
+    user = current_user()
+    stall_name = None
+
+    if user and user.get("role") == "owner":
+        db = get_db()
+        stall = db.execute(
+            "SELECT stall_name FROM stalls WHERE owner_id=?",
+            (user["id"],)
+        ).fetchone()
+
+        if stall:
+            stall_name = stall[0]
+
+    return dict(current_user=user, stall_name=stall_name)
 
 # ================= LOGIN =================
 @app.route("/login", methods=["GET", "POST"])
@@ -335,16 +370,31 @@ def customer():
 # STALL PRODUCTS
 @app.route("/stall/<int:stall_id>")
 def stall_products(stall_id):
+
     db = get_db()
+
+    # products
     products = db.execute("""
         SELECT id, product_name, price, prep_time, availability, image
         FROM products
         WHERE stall_id=?
         ORDER BY id ASC
     """, (stall_id,)).fetchall()
+
+    # stall name
+    stall = db.execute("""
+        SELECT stall_name FROM stalls WHERE id=?
+    """, (stall_id,)).fetchone()
+
     db.close()
 
-    return render_template("stall_products.html", products=products)
+    stall_name = stall[0] if stall else "Unknown "
+
+    return render_template(
+        "stall_products.html",
+        products=products,
+        stall_name=stall_name
+    )
 
 
 # ================= OWNER =================

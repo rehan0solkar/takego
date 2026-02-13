@@ -14,10 +14,23 @@
 {% block content %}
 <div id="toast" class="toast hidden"></div>
 <header class="navbar">
-    <h1 class="logo">Products</h1>
-    <nav>
-        <a href="/customer">Back</a>
-    </nav>
+
+  <!-- LEFT SIDE -->
+  <h1 class="logo">{{ stall_name }}'s Stall</h1>
+
+  <!-- RIGHT SIDE -->
+  <nav>
+    <div class="nav-right">
+      {% if current_user %}
+      <!-- back always -->
+      <a href="/customer" class="back-link">Back</a>
+      {% else %}
+        <a href="/login" class="login-btn"><span>Login</span></a>
+      {% endif %}
+
+    </div>
+  </nav>
+
 </header>
 <input id="search" onkeyup="filterProducts('search', '.product-card')" placeholder="Search products">
 
@@ -40,8 +53,6 @@
 
         <p class="price">₹{{ p[2] }}</p>
         <p class="prep">⏱ {{ p[3] }} mins</p>
-        <p>Current Token: <span id="liveToken"></span></p>
-
         {% if p[4] > 0 %}
             <span class="badge in">In Stock ({{ p[4] }})</span>
 

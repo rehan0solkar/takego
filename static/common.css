@@ -303,15 +303,18 @@ button {
     flex-direction: column;
     gap: 4px;
     width: 100%;
-    max-width: 280px;
+    max-width: 250px;
     box-sizing: border-box;
-    border: 1px solid #ddd;
-    background: #fff;
+    border: 1px solid #f2ff00;
+    background: #ffffff;
     border-radius: 10px;
     padding: 12px;
     transition: transform 0.2s ease;
     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     cursor: pointer;
+}
+.product-card h3{
+    text-align:center;
 }
 
 .status.pending { color: orange; }
@@ -909,4 +912,60 @@ img {
     padding: 14px 20px;
     min-width: auto;
   }
+}
+
+.login-btn{
+    position: relative;
+    padding: 9px 22px;
+    border-radius: 30px;
+    font-weight: 600;
+    text-decoration: none;
+    color: #1f2937;
+    background:linear-gradient(135deg, #0000cf, #0099ffb4, #5804ac); /* main fill */
+    display: inline-block;
+    overflow: hidden;
+    transition: all .25s ease;
+}
+
+/* running shine */
+.login-btn::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:-75%;
+    width:50%;
+    height:100%;
+    background:linear-gradient(
+        120deg,
+        transparent,
+        rgba(255,255,255,.7),
+        transparent
+    );
+    transform:skewX(-25deg);
+    animation:shine 3s infinite;
+}
+
+@keyframes shine{
+    0%{ left:-75%; }
+    60%{ left:130%; }
+    100%{ left:130%; }
+}
+
+/* hover */
+.login-btn:hover{
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #000000;
+    transform: translateY(-1px);
+    box-shadow:0 6px 14px rgba(0,0,0,.25);
+}
+/* animation */
+@keyframes borderRun{
+    0%{background-position:0% 50%;}
+    100%{background-position:200% 50%;}
+}
+@media(max-width:768px){
+    .login-btn{
+        padding:8px 18px;
+        font-size:14px;
+    }
 }

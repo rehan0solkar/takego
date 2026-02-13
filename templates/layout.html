@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
 </head>
 <body>
- {% set user = current_user() %}
 
 <!-- 🔔 FLASH MESSAGE (CENTER) -->
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -22,8 +21,8 @@
 
 <!-- 🔹 MAIN CONTENT -->
 {% block content %}{% endblock %}
-
 <!-- 🧠 AUTO HIDE FLASH -->
+ 
 <script>
 function showToast(message, category = "info") {
   let toast = document.getElementById("toast");
@@ -46,8 +45,6 @@ function showToast(message, category = "info") {
     toast.classList.add("hidden");
   }, 2500);
 }
-</script>
-<script>
 window.addEventListener("DOMContentLoaded", () => {
   const flash = document.getElementById("flash-container");
   if (!flash) return;
@@ -67,7 +64,6 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
-
 
 </body>
 </html>

@@ -8,8 +8,9 @@
 </head>
 <body>
 <header class="navbar">
-  <h1 class="logo">Add Products</h1>
-
+    {% if current_user %}
+   <h1><a href="/owner_orders">{{ stall_name }}</a></h1>
+{% endif %}
   <nav class="nav-right">
     <div class="dropdown">
       <img
@@ -69,7 +70,7 @@
 </div>
 
 <main class="container">
-    <h2>My Products</h2>
+    <h2>Inventory</h2>
 
     <table class="product-table">
         <tr>
